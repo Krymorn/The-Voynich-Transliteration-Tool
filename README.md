@@ -7,11 +7,11 @@ Create your own Voynich Manuscript transcription or translation based on the v10
 
   **Syntax:** (Note: Special syntax only works in the number_mapping.txt file, not the output_mapping.txt file.)<br />
   
-  &emsp;- @ means use that mapping if the character is at the start of the line (Eg. 56=9@).<br />
+  &emsp;- @ means use that mapping if the character is at the start of the line (Eg. "56=9@").<br />
   
-  &emsp;- / means use that mapping if the character is at the end of the line (Eg. 57=9/).<br />
+  &emsp;- / means use that mapping if the character is at the end of the line (Eg. "57=9/").<br />
   
-  &emsp;- ) at the beginning of a line in the input_mapping.txt file means that line will be ignored (Essentially commented out) (Eg. )58=9).<br />
+  &emsp;- ) at the beginning of a line in the input_mapping.txt file means that line will be ignored (Essentially commented out) (Eg. ")58=9").<br />
   
   &emsp;- Nothing special in the line just works normally for any position in the transcription (Note: Multiple of the same character can be used if you put special syntax on the line.)
 
@@ -23,6 +23,3 @@ Create your own Voynich Manuscript transcription or translation based on the v10
   &emsp;2. Remap the output_mapping.txt file with the corosponding output letter(s) (Can be mulitple letters, Eg. "59=us")<br />
   
   &emsp;3. Run the main.py program and open the output.txt file to see your transcription (Using the examples above, setting "9" in the number_mapping.txt to "us" in the output.txt file if it is at the end.)
-
-## To do:
-  1. Multi-character contextual mapping. (Eg. The Voynich Manuscript glyph that looks like ,,,) could optionally be considered a single glyph.) This would account for the possible (and likely) use of scribal abbriviation in the Voynich Manuscript.
