@@ -7,9 +7,9 @@ Create your own Voynich Manuscript transcription or translation based on the v10
 
   **Syntax:** (Note: Special syntax only works in the number_mapping.txt file, not the output_mapping.txt file.)<br />
   
-  &emsp;- @ means use that mapping if the character is at the start of the line (Eg. "56=9@").<br />
+  &emsp;- @ at the end of a line means use that mapping if the character is at the start of the line (Eg. "56=9@").<br />
   
-  &emsp;- / means use that mapping if the character is at the end of the line (Eg. "57=9/").<br />
+  &emsp;- / at the end of a line means use that mapping if the character is at the end of the line (Eg. "57=9/").<br />
   
   &emsp;- ) at the beginning of a line in the input_mapping.txt file means that line will be ignored (Essentially commented out) (Eg. ")58=9").<br />
   
