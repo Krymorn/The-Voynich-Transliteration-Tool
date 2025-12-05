@@ -78,7 +78,9 @@ These features are being considered for future versions of TVTT:
 - Pattern and frequency analysis tools
 - Optional machine-learning-assisted mapping suggestions
 - Visualization of character frequency before/after mapping
+- Easier use of mapping files (possibly only using a single file for mapping)
 - Custom delimiter & symbol configuration in one place
+- Option to use the EVA (or an alternative) transcription instead of the v101 transcription
 
 Suggestions for new features are welcome — feel free to open an issue.
 
