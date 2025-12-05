@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: The Voynich Transliteration Tool (TVTT)
+message: "If you use this software in your research, please cite it as below."
+type: software
+authors:
+  - family-names: Krymorn
+github: https://github.com/Krymorn/The-Voynich-Transliteration-Tool
+version: 1.1.2
+date-released: 2025-12-04
+url: https://github.com/Krymorn/The-Voynich-Transliteration-Tool
+abstract: >
+  The Voynich Transliteration Tool (TVTT) is a customizable, rule-based
+  transliteration utility for remapping Voynich Manuscript v101 transcription
+  symbols into user-defined character sets, supporting positional context and
+  multi-character substitutions.
