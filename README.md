@@ -10,7 +10,7 @@ Create your own Voynich Manuscript transcription or translation based on the v10
   - Syntax features for functionality purposes. (Note: The same character can be mapped multiple times if you have different syntax on each line.)
 
 ## Tutorial:
-  **NOTE:** Do not touch v101.txt and v101_cleaned.txt! (Although the v101_cleaned.txt file can be extremly useful for other techniques as it gets rid of the <> page and line numbers.)<br />
+  **NOTE:** Do not touch v101.txt and v101_cleaned.txt! (Although the v101_cleaned.txt file can be extremly useful for other techniques as it gets rid of the < and > characters and everything inside them.)<br />
   **NOTE:** Each mapping must be on a new line!
 
   ### Syntax: 
