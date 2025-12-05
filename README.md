@@ -86,3 +86,8 @@ Suggestions for new features are welcome — feel free to open an issue.
 
 ## Feedback & Ideas:
 Thanks for checking this tool out! If you have a feature request, improvement idea, or find a bug, feel free to open an issue. This project is still a work in progress, and all suggestions are welcome.
+
+## Credits & Citations:
+&emsp;1. Voynich.nu for the copy of the v101 transcription (https://voynich.nu/data/voyn_101.txt)<br>
+&emsp;2. ChatGPT for assistance with minor bugs in the code and assistance with the documentation (https://chatgpt.com/)<br>
+&emsp;3. Google Gemini for the cleaner.py script and some minor bug fixes (https://gemini.google.com/)<br>
