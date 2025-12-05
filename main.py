@@ -1,4 +1,4 @@
-# The Voynich Transcription Tool
+# The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
