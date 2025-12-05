@@ -1,5 +1,5 @@
 # The Voynich Transliteration Tool (TVTT)
-  &emsp;Create your own Voynich Manuscript transliteration or translation based on the v101 transliteration.
+Create your own Voynich Manuscript transliteration or translation based on the v101 transliteration.
 
 ## Goal:
   &emsp;To make a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable corresponding mapping of v101 characters to the characters you set. The program should optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple characters.
