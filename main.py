@@ -215,6 +215,7 @@ def getNum(inputChar, index, data):
   # Calculate length based on the input string (e.g., "4o" is length 2)
   length = len(inputChar)
 
+  # Determine if character is at beginning, somewhere in the middle, or end of the word
   at_end = is_word_end(index, data, length)
   at_start = is_word_start(index, data)
 
@@ -256,10 +257,12 @@ while i < len(inputData):
   match_str = ch
   match_len = 1
 
+  # Deals with getting the characters if there is multi-character input
   for length in range(MAX_KEY_LENGTH, 0, -1):
     if i + length > len(inputData):
       continue
 
+    # Setting the characters
     chars = inputData[i : i + length]
 
     # If the sequence exists in the input map, use it
