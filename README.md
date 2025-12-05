@@ -21,9 +21,9 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
 
   ### Syntax: 
   (Note: Special syntax only works in the number_mapping.txt file, not the output_mapping.txt file.)<br />
-  - @  —  at the end of a line in the number_mapping.txt file means the program will use that mapping number if the character is at the start of a word (e.g. `56=9@` only uses that mapping if 9 is at the front of a word). 
-  - /  —  at the end of a line in the number_mapping.txt file means the program will use that mapping number if the character is at the end of a word (e.g. `57=9/` only uses that mapping if 9 is at the end of a word).
-  - )  —  at the beginning of a line in the number_mapping.txt file means that line will be ignored (Essentially commented out) (e.g. `)58=9` ignores that line completely).
+  - @  —  at the end of a line means the program will use that mapping number if the character is at the start of a word (e.g. `56=9@` only uses that mapping if 9 is at the front of a word). 
+  - /  —  at the end of a line means the program will use that mapping number if the character is at the end of a word (e.g. `57=9/` only uses that mapping if 9 is at the end of a word).
+  - )  —  at the beginning of a line means that line will be ignored (Essentially commented out) (e.g. `)58=9` ignores that line completely).
   - Having no special syntax in the line just works normally for any position in a word (Note: The same character can be mapped multiple times if you have different syntax on each line) (e.g. `58=9` uses that mapping if `9` is anywhere in the word.)
 
   ### Instructions:
