@@ -69,5 +69,18 @@ You can change these in `output_mapping.txt`.
 **Q: Does it support languages other than English?**  
 A: Yes. You can map output to *any* characters or symbols, including other languages or custom alphabets.
 
+## Planned Features
+
+These features are being considered for future versions of TVTT:
+
+- Preset mapping profiles (Latin, English, phonetic, etc.)
+- Batch processing of multiple texts
+- Pattern and frequency analysis tools
+- Optional machine-learning-assisted mapping suggestions
+- Visualization of character frequency before/after mapping
+- Custom delimiter & symbol configuration in one place
+
+Suggestions for new features are welcome — feel free to open an issue.
+
 ## Feedback & Ideas
 Thanks for checking this tool out! If you have a feature request, improvement idea, or find a bug, feel free to open an issue. This project is still a work in progress, and all suggestions are welcome.
