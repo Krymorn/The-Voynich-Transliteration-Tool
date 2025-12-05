@@ -12,15 +12,15 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
 ## Tutorial:
 
   **File Uses:**<br />
-&emsp;number_mapping.txt converts v101 characters into numeric placeholders.<br />
-&emsp;output_mapping.txt converts those numbers into your final characters.
+&emsp;`number_mapping.txt` converts v101 characters into numeric placeholders.<br />
+&emsp;`output_mapping.txt` converts those numbers into your final characters.
 
-  **NOTE:** Do not touch v101.txt and v101_cleaned.txt! (Although the v101_cleaned.txt file can be extremely useful for other use cases as it gets rid of the < and > characters and everything inside of them. Feel free to download just that file for your own use.)<br />
+  **NOTE:** Do not touch `v101.txt` and `v101_cleaned.txt`! (Although the `v101_cleaned.txt` file can be extremely useful for other use cases as it gets rid of the < and > characters and everything inside of them. Feel free to download just that file for your own use.)<br />
   
-  **NOTE:** Each mapping must be on a new line for both number_mapping.txt and output_mapping.txt!
+  **NOTE:** Each mapping must be on a new line for both `number_mapping.txt` and `output_mapping.txt`!
 
   ### Syntax: 
-  (Note: Special syntax only works in the number_mapping.txt file, not the output_mapping.txt file.)<br />
+  (Note: Special syntax only works in the `number_mapping.txt` file, not the `output_mapping.txt` file.)<br />
   - @  —  at the end of a line means the program will use that mapping number if the character is at the start of a word (e.g. `56=9@` only uses that mapping if 9 is at the front of a word). 
   - /  —  at the end of a line means the program will use that mapping number if the character is at the end of a word (e.g. `57=9/` only uses that mapping if 9 is at the end of a word).
   - )  —  at the beginning of a line means that line will be ignored (Essentially commented out) (e.g. `)58=9` ignores that line completely).
@@ -30,16 +30,16 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   
   &emsp;1. Download the .zip file from the latest release and unpack it. Then navigate to the directory you unpacked the files to.<br />
   
-  &emsp;2. Open the number_mapping.txt file and edit it (Mappings can be multiple letters corresponding to one number, e.g. `60=4o`) (You can optionally use special syntax, e.g. `59=9/`) (Note: Do not delete or change the already existing lines, add new ones for multi-character mapping and special syntax.)<br />
+  &emsp;2. Open the `number_mapping.txt` file and edit it (Mappings can be multiple letters corresponding to one number, e.g. `60=4o`) (You can optionally use special syntax, e.g. `59=9/`) (Note: Do not delete or change the already existing lines, add new ones for multi-character mapping and special syntax.)<br />
   
-  &emsp;3. Open and remap the output_mapping.txt file with the corresponding output character(s) (Optionally can be multiple letters, e.g. `59=us`) (Note: Only change the characters in the mapping, not the numbers. If you have added lines to number_mapping.txt then you should add the corresponding lines with the correct numbers, otherwise those character mappings will be ignored. Also, mappings in output_mapping.txt will be ignored if there is no corresponding mapping in number_mapping.txt and vice versa.)<br />
+  &emsp;3. Open and remap the `output_mapping.txt` file as needed with the corresponding output character(s) (Optionally can be multiple letters, e.g. `59=us`) (Note: Only change the characters in the mapping, not the numbers. If you have added lines to number_mapping.txt then you should add the corresponding lines with the correct numbers, otherwise those character mappings will be ignored. Also, mappings in output_mapping.txt will be ignored if there is no corresponding mapping in number_mapping.txt and vice versa.)<br />
   
-  &emsp;4. Run the main.py program and open the output.txt file to see your transliteration (Using the examples above, setting `59=9/` in the number_mapping.txt and `59=us` in the output_mapping.txt file will replace all the `9` characters at the end of words with `us` in the output.txt file) (Note: # characters are spaces and , characters are ambiguous spaces. This can be changed in output_mapping.txt.)
+  &emsp;4. Run the main.py program and open the `output.txt` file to see your transliteration (Using the examples above, setting `59=9/` in the `number_mapping.txt` and `59=us` in the `output_mapping.txt` file will replace all the `9` characters at the end of words with `us` in the `output.txt` file) (Note: # characters are spaces and , characters are ambiguous spaces. This can be changed in output_mapping.txt.)
 
-### How it works
-v101_cleaned.txt → number_mapping.txt → output_numbers.txt → output_mapping.txt → output.txt
+### How it works:
+`v101_cleaned.txt` → `number_mapping.txt` → `output_numbers.txt` → `output_mapping.txt` → `output.txt`
 
-## FAQ
+## FAQ:
 
 **Q: What is v101?**  
 A: v101 is one of the standard transcription systems for representing Voynich Manuscript characters in a text format.
@@ -67,9 +67,9 @@ A: By default:
 You can change these in `output_mapping.txt`.
 
 **Q: Does it support languages other than English?**  
-A: Yes. You can map the output to *any* characters or symbols that a .txt file can take, including other languages or custom alphabets.
+A: Yes. You can map the output to *any* characters or symbols supported by `.txt` files, including other languages or custom alphabets.
 
-## Planned Features
+## Planned Features:
 
 These features are being considered for future versions of TVTT:
 
@@ -82,5 +82,5 @@ These features are being considered for future versions of TVTT:
 
 Suggestions for new features are welcome — feel free to open an issue.
 
-## Feedback & Ideas
+## Feedback & Ideas:
 Thanks for checking this tool out! If you have a feature request, improvement idea, or find a bug, feel free to open an issue. This project is still a work in progress, and all suggestions are welcome.
