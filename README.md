@@ -67,7 +67,7 @@ A: By default:
 You can change these in `output_mapping.txt`.
 
 **Q: Does it support languages other than English?**  
-A: Yes. You can map output to *any* characters or symbols, including other languages or custom alphabets.
+A: Yes. You can map the output to *any* characters or symbols that a .txt file can take, including other languages or custom alphabets.
 
 ## Planned Features
 
