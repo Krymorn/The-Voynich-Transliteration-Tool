@@ -1,6 +1,9 @@
 # The Voynich Transcription Tool (TVTT)
 Create your own Voynich Manuscript transcription or translation based on the v101 transcription.
 
+## Goal:
+  &emsp;To make a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable corresponding mapping of v101 characters to the characters you set. The program should optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple characters.
+
 ## Features:
   - Positional context mapping at the front and end of words using syntax (see below).
   - Multi-character input and output mapping (Eg. "55=4o" for number_mapping.txt and "55=con" for output_mapping.txt)
