@@ -11,6 +11,7 @@ Create your own Voynich Manuscript transcription or translation based on the v10
 
 ## Tutorial:
   **NOTE:** Do not touch v101.txt and v101_cleaned.txt! (Although the v101_cleaned.txt file can be extremly useful for other techniques as it gets rid of the < and > characters and everything inside them.)<br />
+  
   **NOTE:** Each mapping must be on a new line!
 
   ### Syntax: 
