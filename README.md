@@ -2,7 +2,7 @@
 Create your own Voynich Manuscript transliteration or translation based on the v101 transliteration.
 
 ## Goal:
-  &emsp;To make a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable corresponding mapping of v101 characters to the characters you set. The program should optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple characters.
+  &emsp;To make a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable mapping of v101 characters to the characters you set. The program should optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple characters.
 
 ## Features:
   - Positional context mapping at the front and end of words using syntax (see below).
