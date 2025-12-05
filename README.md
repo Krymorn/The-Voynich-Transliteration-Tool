@@ -39,5 +39,35 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
 ### How it works
 v101_cleaned.txt → number_mapping.txt → output_numbers.txt → output_mapping.txt → output.txt
 
+## FAQ
+
+**Q: What is v101?**  
+A: v101 is one of the standard transcription systems for representing Voynich Manuscript characters in a text format.
+
+**Q: Is this a translation tool?**  
+A: No. This is a transliteration tool, not a translation engine. It remaps Voynich characters into user-defined characters or strings.
+
+**Q: Can one Voynich character map to multiple output characters?**  
+A: Yes. The tool supports multi-character output (e.g. `59=us`).
+
+**Q: Can different mappings apply depending on where a character appears in a word?**  
+A: Yes. Use:
+- `@` for start of word
+- `/` for end of word  
+These only work inside `number_mapping.txt`.
+
+**Q: Can this help decode the Voynich Manuscript?**  
+A: It is not a decoding solution by itself, but it can assist researchers in testing substitution schemes and hypotheses.
+
+**Q: Why are `#` and `,` in the output?**  
+A: By default:
+- `#` = space  
+- `,` = ambiguous space  
+
+You can change these in `output_mapping.txt`.
+
+**Q: Does it support languages other than English?**  
+A: Yes. You can map output to *any* characters or symbols, including other languages or custom alphabets.
+
 ## Feedback & Ideas
 Thanks for checking this tool out! If you have a feature request, improvement idea, or find a bug, feel free to open an issue. This project is still a work in progress, and all suggestions are welcome.
