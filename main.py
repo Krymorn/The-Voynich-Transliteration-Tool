@@ -8,7 +8,7 @@
 
 ### Setup ###
 # Setup file names
-mapPath = "number_mapping.txt"
+mapPath = "input_mapping.txt"
 inputMapPath = "output_mapping.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
