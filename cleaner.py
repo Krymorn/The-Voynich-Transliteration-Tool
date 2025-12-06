@@ -12,9 +12,6 @@ def clean_transcription(text):
   # Remove everything between < and >
   text = re.sub(r"<[^>]*>", "", text)
 
-  # Replace periods with hashtags
-  text = text.replace(".", "#")
-
   return text
 
 
