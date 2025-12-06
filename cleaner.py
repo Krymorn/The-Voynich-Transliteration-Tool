@@ -6,11 +6,21 @@ import sys
 def clean_transcription(text):
   """
   - Removes anything between < and > (including the symbols)
-  - Replaces all periods with hashtags
+  - Replaces all periods with equal signs and commas with dashes
   """
 
   # Remove everything between < and >
   text = re.sub(r"<[^>]*>", "", text)
+
+  # Remove - and = characters which typically mark the end of a line in the v101 transcription but are unnecessary here
+  text = text.replace("-", "")
+  text = text.replace("=", "")
+  
+  # Replace periods with equal signs
+  text = text.replace(".", "=")
+
+  # Replace commas with dashes
+  text = text.replace(",", "-")
 
   return text
 
