@@ -73,10 +73,9 @@ A: Yes. You can map the output to *any* characters or symbols supported by `.txt
 
 These features are being considered for future versions of TVTT:
 
-- Preset mapping profiles (Latin, English, phonetic, etc.)
 - Batch processing of multiple texts
 - Pattern and frequency analysis tools
-- Multi-language dictionary assisted mapping suggestions
+- Dictionary assisted mapping suggestions
 - Visualization of character frequency before/after mapping
 - Easier use of mapping files (possibly only using a single file for mapping)
 - Custom delimiter & symbol configuration in one place
