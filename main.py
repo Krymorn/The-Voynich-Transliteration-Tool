@@ -1,5 +1,6 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
+# Version: 1.1.4
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # TVTT accounts for optional contextual mapping (Eg. A character meaning something different at the beginning of a word versus the end versus the middle) (see README.md)
@@ -8,8 +9,8 @@
 
 ### Setup ###
 # Setup file names
-mapPath = "input_mapping.txt"
-inputMapPath = "output_mapping.txt"
+numberMapPath = "input_mapping.txt"
+outputMapPath = "output_mapping.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
@@ -17,9 +18,14 @@ outputNumberPath = "output_numbers.txt"
 # Read input
 with open(inputPath, "r") as inputFile:
   inputData = inputFile.read()
+  # Replace periods with equal signs
+  inputData = inputData.replace(".", "=")
+
+  # Replace commas with dashes
+  inputData = inputData.replace(",", "-")
 
 # Read output mapping file
-with open(inputMapPath, "r") as inputMapFile:
+with open(outputMapPath, "r") as inputMapFile:
   inputMapData = inputMapFile.read()
 
 # Output
@@ -45,13 +51,12 @@ char_to_num_initial = {}
 input_num_to_char_initial = {}
 input_char_to_num_initial = {}
 
-
 ### Mapping ###
 # Open and read number mapping file
-with open(mapPath, "r") as mapFile:
+with open(numberMapPath, "r") as numberMapFile:
 
   # Read each line
-  for line in mapFile:
+  for line in numberMapFile:
     line = line.strip()
 
     # Ignore lines that are empty, formatted wrong, or are commented out by a ) character
@@ -91,10 +96,10 @@ with open(mapPath, "r") as mapFile:
       char_to_num_normal[char] = number
 
 # Open and read output mapping file
-with open(inputMapPath, "r") as inputMapFile:
+with open(outputMapPath, "r") as outputMapFile:
 
   # Read each line
-  for line in inputMapFile.readlines():
+  for line in outputMapFile.readlines():
     line = line.strip()
 
     # Ignore lines that are empty, formatted wrong, or are commented out by a ) character
@@ -156,7 +161,7 @@ def is_word_start(index, data):
 
   # Check if the previous character was a separator
   prev_char = data[index - 1]
-  return prev_char in ["#", ",", "\n"]
+  return prev_char in ["=", "-", "\n"]
 
 # Determine if character is at the end of word
 # Determine if the indexed character ends a word
@@ -165,7 +170,7 @@ def is_word_end(index, data, length=1):
     return True
 
   # Check if the previous character was a separator
-  return data[index + length] in ["#", ",", "\n"]
+  return data[index + length] in ["=", "-", "\n"]
 
 # Get the character in the output mapping that corrosponds to the inputted number
 def getChar(inputNum, index, data, length=1):
@@ -238,7 +243,7 @@ while i < len(inputData):
   # Write newlines as needed
   if ch == "\n":
     outputNumberFile.write("\n.")
-    outputFile.write("\n.")
+    outputFile.write("\n")
     i += 1
     continue
 
