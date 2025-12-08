@@ -1,16 +1,26 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.1.4
+# Version: 1.2.0
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # TVTT accounts for optional contextual mapping (Eg. A character meaning something different at the beginning of a word versus the end versus the middle) (see README.md)
 # 
 # Note: The v101 transcription used does not include the v101 extended character set.
 
+
 ### Setup ###
+# Delimiter and symbol configuration
+# Note: Recommended to keep delimiters and symbols as they are, as the default settings work specifically with the v101 transcription
+spaceDelimiter = "="
+ambiguousSpaceDelimiter = "-"
+
+endOfWordMarker = "/"
+startOfWordMarker = "@"
+
+commentOutChar = ")"
+
 # Setup file names
-numberMapPath = "input_mapping.txt"
-outputMapPath = "output_mapping.txt"
+mapPath = "mapping.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
@@ -19,13 +29,13 @@ outputNumberPath = "output_numbers.txt"
 with open(inputPath, "r") as inputFile:
   inputData = inputFile.read()
   # Replace periods with equal signs
-  inputData = inputData.replace(".", "=")
+  inputData = inputData.replace(".", spaceDelimiter)
 
   # Replace commas with dashes
-  inputData = inputData.replace(",", "-")
+  inputData = inputData.replace(",", ambiguousSpaceDelimiter)
 
 # Read output mapping file
-with open(outputMapPath, "r") as inputMapFile:
+with open(mapPath, "r") as inputMapFile:
   inputMapData = inputMapFile.read()
 
 # Output
@@ -52,15 +62,15 @@ input_num_to_char_initial = {}
 input_char_to_num_initial = {}
 
 ### Mapping ###
-# Open and read number mapping file
-with open(numberMapPath, "r") as numberMapFile:
+# Open and read mapping file
+with open(mapPath, "r") as mapFile:
 
   # Read each line
-  for line in numberMapFile:
+  for line in mapFile:
     line = line.strip()
 
     # Ignore lines that are empty, formatted wrong, or are commented out by a ) character
-    if not line or "=" not in line or line.startswith(")"):
+    if not line or spaceDelimiter not in line or "~" not in line or line.startswith(commentOutChar):
       continue
 
     # Set up the is_final boolean
@@ -70,77 +80,47 @@ with open(numberMapPath, "r") as numberMapFile:
     is_initial = False
 
     # Detect end-of-word (marked by "/" at the end of line in the input mapping file)
-    if "/" in line:
-      line = line.replace("/", "")
+    if line.endswith("/"):
+      line = line[:-1]
       is_final = True
 
     # Detect start-of-word (marked by "@" at the end of line in the input mapping file)
-    if "@" in line:
-      line = line.replace("@", "")
+    if line.endswith(startOfWordMarker):
+      line = line[:-1]
       is_initial = True
 
     # Break line into number and character
-    number, char = line.split("=", 1)
+    number, line2 = line.split(spaceDelimiter, 1)
+    char, outputChar = line2.split("~", 1)
     number = number.strip()
     char = char.strip()
+    outputChar = outputChar.strip()
 
     # Write to lists
     if is_final:
-      num_to_char_final[number] = char
-      char_to_num_final[char] = number
-    elif is_initial:
-      num_to_char_initial[number] = char
-      char_to_num_initial[char] = number
-    else:
-      num_to_char_normal[number] = char
-      char_to_num_normal[char] = number
-
-# Open and read output mapping file
-with open(outputMapPath, "r") as outputMapFile:
-
-  # Read each line
-  for line in outputMapFile.readlines():
-    line = line.strip()
-
-    # Ignore lines that are empty, formatted wrong, or are commented out by a ) character
-    if not line or "=" not in line or line.startswith(")"):
-      continue
-
-    # Set up the is_final boolean
-    is_final = False
-
-    # Set up the is_initial boolean
-    is_initial = False
-
-    # Detect end-of-word
-    if "/" in line:
-      line = line.replace("/", "")
-      is_final = True
-
-    # Detect start-of-word
-    if "@" in line:
-      line = line.replace("@", "")
-      is_start = True
-
-    # Break line into number and character
-    number, char = line.split("=", 1)
-    number = number.strip()
-    char = char.strip()
-
-    # Write to lists
-    if is_final:
-      input_num_to_char_final[number] = char
       input_char_to_num_final[char] = number
+      input_num_to_char_final[number] = outputChar
+      char_to_num_final[char] = number
+      num_to_char_final[number] = outputChar
+
     elif is_initial:
-      num_to_char_initial[number] = char
+      input_char_to_num_initial[char] = number
+      input_num_to_char_initial[number] = outputChar
       char_to_num_initial[char] = number
+      num_to_char_initial[number] = outputChar
+
     else:
-      input_num_to_char_normal[number] = char
       input_char_to_num_normal[char] = number
+      input_num_to_char_normal[number] = outputChar
+      char_to_num_normal[char] = number
+      num_to_char_normal[number] = outputChar
 
 # Calculate the maximum length of any key in the input mapping, allowing dynamic checking for tokens length (1, 2, 3, etc.)
 all_keys = (
-  list(char_to_num_normal.keys()) + 
+  list(input_char_to_num_normal.keys()) +
+  list(input_char_to_num_final.keys()) +
+  list(input_char_to_num_initial.keys()) +
+  list(char_to_num_normal.keys()) +
   list(char_to_num_final.keys()) + 
   list(char_to_num_initial.keys()) +
   list(num_to_char_normal.keys()) + 
@@ -148,8 +128,7 @@ all_keys = (
   list(num_to_char_initial.keys())
 )
 
-# Get the maximum length of a mapping
-MAX_KEY_LENGTH = max(len(k) for k in all_keys) if all_keys else 1
+MAX_KEY_LENGTH = max((len(k) for k in all_keys), default=1)
 
 
 ### Functions ###
@@ -161,7 +140,7 @@ def is_word_start(index, data):
 
   # Check if the previous character was a separator
   prev_char = data[index - 1]
-  return prev_char in ["=", "-", "\n"]
+  return prev_char in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
 
 # Determine if character is at the end of word
 # Determine if the indexed character ends a word
@@ -170,7 +149,7 @@ def is_word_end(index, data, length=1):
     return True
 
   # Check if the previous character was a separator
-  return data[index + length] in ["=", "-", "\n"]
+  return data[index + length] in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
 
 # Get the character in the output mapping that corrosponds to the inputted number
 def getChar(inputNum, index, data, length=1):
@@ -232,7 +211,7 @@ def getNum(inputChar, index, data):
 
 
 ### Main ###
-# Start file with a . for formatting purposes
+# Start numbers file with a . for formatting purposes
 outputNumberFile.write(".")
 
 # Use a while loop to allow skipping indices for multi-character matches
@@ -248,7 +227,7 @@ while i < len(inputData):
     continue
 
   # Write = and - as needed
-  if ch in ["=", "-"]:
+  if ch in [spaceDelimiter, ambiguousSpaceDelimiter]:
     outputNumberFile.write(ch + ".")
     outputFile.write(ch)
     i += 1
@@ -264,11 +243,11 @@ while i < len(inputData):
       continue
 
     # Setting the characters
-    chars = inputData[i : i + length]
+    inputChars = inputData[i : i + length]
 
     # If the sequence exists in the input map, use it
-    if chars in char_to_num_normal or chars in char_to_num_final or chars in char_to_num_initial:
-      match_str = chars
+    if inputChars in input_char_to_num_normal or inputChars in input_char_to_num_final or inputChars in input_char_to_num_initial:
+      match_str = inputChars
       match_len = length
       break
 
