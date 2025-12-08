@@ -6,38 +6,38 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
 
 ## Features:
   - Positional context mapping at the front and end of words using syntax (see below).
-  - Multi-character input and output mapping (e.g. `55=4o` in number_mapping.txt and `55=con` in output_mapping.txt)
-  - Syntax features for functionality purposes. (Note: The same character can be mapped multiple times if you have different syntax on each line.)
+  - Multi-character input and output mapping (e.g. `55=4o~con` in `mapping.txt`.)
+  - Syntax features for functionality purposes. (Note: The same character can be mapped multiple times if you have different syntax on each line. Also, if there is only a single character in a word and the character has multiple mappings, the first mapping will be used)
 
 ## Tutorial:
 
   ### File Uses:
-&emsp;`input_mapping.txt` converts v101 characters into numeric placeholders.<br />
-&emsp;`output_mapping.txt` converts those numbers into your final characters.
+  - `cleaner.py` cleans the v101 transcription from `v101.txt` and puts it in `v101_cleaned.txt`.
+  - `mapping.py` sets the default mappings in `mapping.txt` by scanning through `v101_cleaned.txt` and adding new characters to the mapping file.
+  - `mapping.txt` contains the mapping to convert v101 characters into numeric placeholders and then back into your custom mapping.<br />
+  - `main.py` uses `mapping.txt` to write to the `output_numbers.txt` file and then uses the `output_numbers.txt` file to write your custom mapping to `output.txt`.
+  - `output.txt` contains the outputted transcription with your transliteration.
 
   **NOTE:** Do not touch `v101.txt` and `v101_cleaned.txt`! (Although the `v101_cleaned.txt` file can be extremely useful for other use cases as it gets rid of the `<` and `>` characters and everything inside of them. Feel free to download just that file for your own use.)<br />
   
-  **NOTE:** Each mapping must be on a new line for both `input_mapping.txt` and `output_mapping.txt`!<br>
+  **NOTE:** Each mapping must be on a new line in `mapping.txt`!<br>
 
   ### Syntax: 
-  (Note: Special syntax only works in the `input_mapping.txt` file, not the `output_mapping.txt` file.)<br />
-  - @  —  at the end of a line means the program will use that mapping number if the character is at the start of a word (e.g. `56=9@` only uses that mapping if 9 is at the front of a word). 
-  - /  —  at the end of a line means the program will use that mapping number if the character is at the end of a word (e.g. `57=9/` only uses that mapping if 9 is at the end of a word).
-  - )  —  at the beginning of a line means that line will be ignored (Essentially commented out) (e.g. `)58=9` ignores that line completely).
-  - Having no special syntax in the line just works normally for any position in a word (Note: The same character can be mapped multiple times if you have different syntax on each line) (e.g. `58=9` uses that mapping if `9` is anywhere in the word.)
+  - `@`  —  at the end of a line means the program will use that mapping number if the character is at the start of a word (e.g. `56=9@` only uses that mapping if `9` is at the front of a word). 
+  - `/`  —  at the end of a line means the program will use that mapping number if the character is at the end of a word (e.g. `57=9/` only uses that mapping if `9` is at the end of a word).
+  - `)`  —  at the beginning of a line means that line will be ignored (Essentially commented out) (e.g. `)58=9~us` ignores that line completely).
+  - Having no special syntax in the line just works normally for any position in a word (Note: The same character can be mapped multiple times if you have different syntax on each line) (e.g. `58=9~us` uses that mapping for `9` if it is anywhere in the current word.)
 
   ### Instructions:
   
-  &emsp;1. Download the .zip file from the latest release and unpack it. Then navigate to the directory you unpacked the files to.<br />
+  &emsp;1. Download the `.zip` file from the latest release and unpack it. Then navigate to the directory you unpacked the files to.<br />
   
-  &emsp;2. Open the `input_mapping.txt` file and edit it (Mappings can be multiple letters corresponding to one number, e.g. `60=4o`) (You can optionally use special syntax, e.g. `59=9/`) (Note: Do not delete or change the already existing lines, add new ones for multi-character mapping and special syntax.)<br />
+  &emsp;2. Open and remap the `mapping.txt` file as needed with the corresponding output character(s) (Optionally can be multiple letters, e.g. `59=9~us`) (Note: Do not delete or change anything before the `~` (e.g. `59=9~changeThis`.)<br />
   
-  &emsp;3. Open and remap the `output_mapping.txt` file as needed with the corresponding output character(s) (Optionally can be multiple letters, e.g. `59=us`) (Note: Only change the characters in the mapping, not the numbers. If you have added lines to `input_mapping.txt` then you should add the corresponding lines with the correct numbers, otherwise those character mappings will be ignored. Also, mappings in `output_mapping.txt` will be ignored if there is no corresponding mapping in `input_mapping.txt` and vice versa.)<br />
-  
-  &emsp;4. Run the main.py program and open the `output.txt` file to see your transliteration (Using the examples above, setting `59=9/` in the `input_mapping.txt` and `59=us` in the `output_mapping.txt` file will replace all the `9` characters at the end of words with `us` in the `output.txt` file) (Note: `=` represents spaces and `-` represents ambiguous spaces.)
+  &emsp;3. Run the main.py program and open the `output.txt` file to see your transliteration (Using the examples above, setting `60=9~us/` in `mapping.txt` file will replace all the `9` characters at the end of words with `us` in the `output.txt` file)
 
 ### How it works:
-`v101_cleaned.txt` → `input_mapping.txt` → `output_numbers.txt` → `output_mapping.txt` → `output.txt`
+`v101_cleaned.txt` → `mapping.txt` → `output_numbers.txt` → `output.txt`
 
 ## FAQ:
 
@@ -47,26 +47,26 @@ A: v101 is one of the standard transcription systems for representing Voynich Ma
 **Q: Is this a translation tool?**  
 A: No. This is a transliteration tool, not a translation engine. It remaps the Voynich Manuscript characters into user-defined characters or strings.
 
-**Q: Can one Voynich character map to multiple output characters?**  
-A: Yes. The tool supports multi-character output (e.g. `59=us`).
+**Q: Can one Voynich character map to multiple input and/or output characters?**<br>
+A: Yes. The tool supports both multi-character input and output (e.g. `59=4o~con`).
 
-**Q: Can different mappings apply depending on where a character appears in a word?**  
-A: Yes. Use:
+**Q: Can different mappings apply depending on where a character appears in a word?**<br>
+A: Yes. By default, use:
 - `@` for start of word
-- `/` for end of word  
-These only work inside `input_mapping.txt`.
+- `/` for end of word
 
-**Q: Can this help decode the Voynich Manuscript?**  
+**Q: Can this help decode the Voynich Manuscript?**<br>
 A: It is not a decoding solution by itself, but it can assist researchers in testing substitution schemes and hypotheses.
 
-**Q: Why are `=` and `-` in the output?**  
+**Q: Why are `=` and `-` in the output?**<br>
 A: By default:
-- `=` = space  
-- `-` = ambiguous space  
+- `=` = space
+- `-` = ambiguous space
 
-You can change these in `output_mapping.txt`.
+**Q: Can I change the delimiters and symbol configuration?**<br>
+A: Yes. At the top of `main.py` you can change the delimiters and symbols. Although it is recommended to keep the defaults as they are tested and compatible with the v101 transcription.
 
-**Q: Does it support languages other than English?**  
+**Q: Does it support languages other than English?**<br>
 A: Yes. You can map the output to *any* characters or symbols supported by `.txt` files, including other languages and custom alphabets.
 
 ## Planned Features:
@@ -77,8 +77,6 @@ These features are being considered for future versions of TVTT:
 - Pattern and frequency analysis tools
 - Dictionary assisted mapping suggestions
 - Visualization of character frequency before/after mapping
-- Easier use of mapping files (possibly only using a single file for mapping)
-- Custom delimiter & symbol configuration in one place
 - Option to use the EVA (or an alternative) transcription instead of the v101 transcription
 
 Suggestions for new features are welcome — feel free to open an issue.
@@ -88,5 +86,5 @@ Thanks for checking this tool out! If you have a feature request, improvement id
 
 ## Credits & Citations:
 &emsp;1. Voynich.nu for the copy of the v101 transcription. (https://voynich.nu/data/voyn_101.txt)<br>
-&emsp;2. ChatGPT for assistance with minor bugs in the code and some of the documentation. (https://chatgpt.com/)<br>
+&emsp;2. ChatGPT for assistance with bugs in the code and some of the documentation. (https://chatgpt.com/)<br>
 &emsp;3. Google Gemini for the `cleaner.py` script and some minor bug fixes. (https://gemini.google.com/)
