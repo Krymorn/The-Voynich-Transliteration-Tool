@@ -94,5 +94,5 @@ Thanks for checking this tool out! If you have a feature request, improvement id
 
 ## Credits & Citations:
 &emsp;1. Voynich.nu for the copy of the v101 transcription. (https://voynich.nu/data/voyn_101.txt)<br>
-&emsp;2. ChatGPT for assistance with bugs in the code and some of the documentation. (https://chatgpt.com/)<br>
-&emsp;3. Google Gemini for the `cleaner.py` script and some minor bug fixes. (https://gemini.google.com/)
+&emsp;2. ChatGPT for assistance with some bugs in the code and help with some of the documentation. (https://chatgpt.com/)<br>
+&emsp;3. Google Gemini for the `cleaner.py` script, help with the prefix/suffix/root code, and minor bug fixes. (https://gemini.google.com/)
