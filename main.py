@@ -8,6 +8,11 @@
 # Note: The v101 transcription used does not include the v101 extended character set.
 
 
+### Imports ###
+import math
+from collections import Counter
+
+
 ### Setup ###
 # Delimiter and symbol configuration
 # Note: Recommended to keep delimiters and symbols as they are, as the default settings work specifically with the v101 transcription
@@ -19,11 +24,15 @@ startOfWordMarker = "@"
 
 commentOutChar = ")"
 
+# Enable/disable frequency analysis and character entropy calculations
+enableAnalysis = True
+
 # Setup file names
 mapPath = "mapping.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
+analysisPath = "analysis.txt"
 
 # Read input
 with open(inputPath, "r") as inputFile:
@@ -60,6 +69,7 @@ char_to_num_initial = {}
 
 input_num_to_char_initial = {}
 input_char_to_num_initial = {}
+
 
 ### Mapping ###
 # Open and read mapping file
@@ -142,7 +152,6 @@ def is_word_start(index, data):
   prev_char = data[index - 1]
   return prev_char in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
 
-# Determine if character is at the end of word
 # Determine if the indexed character ends a word
 def is_word_end(index, data, length=1):
   if index + length >= len(data):
@@ -262,6 +271,63 @@ while i < len(inputData):
   # Increment index by the length of the matched token
   i += match_len
 
+
+### Analysis ###
+# Close and reopen outputFile to make it readable
+outputFile.close()
+outputFile = open(outputPath, "r")
+
+# Read outputFile
+outputRead = outputFile.read()
+outputRead = outputRead.replace("=", "")
+outputRead = outputRead.replace("-", "")
+
+# Set up writing to analysis file
+analysisFile = open(analysisPath, "w")
+
+# Count characters
+counts = Counter(outputRead)
+total_chars = len(outputRead)
+
+# Character Entropy
+def entropy():
+  entropy = 0.0
+  for count in counts.values():
+  
+    probability = count / total_chars
+    entropy -= probability * math.log2(probability)
+  
+  #print("Character Entropy: " + str(round(entropy, 3)) + "%\n")      # Optional for command line
+  analysisFile.write("Character Entropy: " + str(round(entropy, 3)) + "%\n\n")
+
+# Character frequency
+def frequency():
+  freq = {}
+  for char in set(outputRead):
+      if char != "\n":
+          freq[char] = outputRead.count(char)
+  
+  freq_sorted = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+  
+  #print("Character Frequency:")      # Optional for command line
+  analysisFile.write("Character Frequency:\n")
+  # Iterate through outputArray
+  for char, count in freq_sorted:
+  
+    if char != "\n":
+      #print("{ " + char + ": " + str(count) + ", " + str(round(count / total_chars * 100, 3)) + "% }")      # Optional for command line
+      analysisFile.write("{ " + char + ": " + str(count) + ", " + str(round(count / total_chars * 100, 3)) + "% }\n")
+
+# Analyse if enabled
+if enableAnalysis:
+  entropy()
+  frequency()
+
+
+### Closing ###
 # Close output files
 outputNumberFile.close()
 outputFile.close()
+
+# Close analysis file
+analysisFile.close()
