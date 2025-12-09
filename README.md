@@ -7,7 +7,8 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
 ## Features:
   - Positional context mapping at the front and end of words using syntax (see below).
   - Multi-character input and output mapping (e.g. `55=4o~con` in `mapping.txt`.)
-  - Frequency and 
+  - Character frequency and entropy analysis.
+  - Common prefix, suffix, and parts of words finding and analysis.
   - Syntax features for functionality purposes. (Note: The same character can be mapped multiple times if you have different syntax on each line. Also, if there is only a single character in a word and the character has multiple mappings, the first mapping will be used)
 
 ## Tutorial:
@@ -18,7 +19,7 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   - `mapping.txt` contains the mapping to convert v101 characters into numeric placeholders and then back into your custom mapping.<br />
   - `main.py` uses `mapping.txt` to write to the `output_numbers.txt` file and then uses the `output_numbers.txt` file to write your custom mapping to `output.txt`.
   - `output.txt` contains the outputted transcription with your transliteration.
-  - `analysis.txt` contains the analysis of the character frequency and character entropy of the `output.txt` file.
+  - `analysis.txt` contains the analysis of the character frequency, character entropy, and common prefix/suffix/roots of the `output.txt` file.
 
   **NOTE:** Do not touch `v101.txt` and `v101_cleaned.txt`! (Although the `v101_cleaned.txt` file can be extremely useful for other use cases as it gets rid of the `<` and `>` characters and everything inside of them. Feel free to download just that file for your own use.)<br />
   
@@ -68,7 +69,7 @@ A: By default:
 - `-` = ambiguous space
 
 **Q: What do the analysis tools do?**<br>
-A: If enabled, the analysis tools will calculate the character frequency and character entropy in `output.txt` and save the analysis to `analysis.txt`.
+A: If enabled, the analysis tools will calculate the character frequency and character entropy in `output.txt` as well as finding common prefixes, suffixes, and roots. Then everything is saved to `analysis.txt`.
 
 **Q: Can I change the delimiters and symbol configuration?**<br>
 A: Yes. At the top of `main.py` you can change the delimiters and symbols. Although it is recommended to keep the defaults as they are tested and compatible with the v101 transcription. You can also change the space and ambiguous space characters in `mapping.py`.
@@ -81,7 +82,6 @@ A: Yes. You can map the output to *any* characters or symbols supported by `.txt
 These features are being considered for future versions of TVTT:
 
 - Batch processing of multiple texts
-- Pattern and syllable distributon analysis
 - Morphological decomposition tools
 - Dictionary assisted mapping suggestions (maybe even ML at some point)
 - Visualization of character frequency before/after mapping
