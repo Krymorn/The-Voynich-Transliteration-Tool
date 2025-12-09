@@ -1,12 +1,13 @@
 # The Voynich Transliteration Tool (TVTT)
 Create your own Voynich Manuscript transliteration based on the v101 transcription.
 
-## Goal:
-  &emsp;To make a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping of v101 characters to the characters you set. The program should optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple characters.
+## Overview:
+  &emsp;TVTT is a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping of v101 characters to the characters you set. The program should optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple characters.
 
 ## Features:
   - Positional context mapping at the front and end of words using syntax (see below).
   - Multi-character input and output mapping (e.g. `55=4o~con` in `mapping.txt`.)
+  - Frequency and 
   - Syntax features for functionality purposes. (Note: The same character can be mapped multiple times if you have different syntax on each line. Also, if there is only a single character in a word and the character has multiple mappings, the first mapping will be used)
 
 ## Tutorial:
@@ -17,6 +18,7 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   - `mapping.txt` contains the mapping to convert v101 characters into numeric placeholders and then back into your custom mapping.<br />
   - `main.py` uses `mapping.txt` to write to the `output_numbers.txt` file and then uses the `output_numbers.txt` file to write your custom mapping to `output.txt`.
   - `output.txt` contains the outputted transcription with your transliteration.
+  - `analysis.txt` contains the analysis of the character frequency and character entropy of the `output.txt` file.
 
   **NOTE:** Do not touch `v101.txt` and `v101_cleaned.txt`! (Although the `v101_cleaned.txt` file can be extremely useful for other use cases as it gets rid of the `<` and `>` characters and everything inside of them. Feel free to download just that file for your own use.)<br />
   
@@ -36,8 +38,10 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   
   &emsp;3. Run the main.py program and open the `output.txt` file to see your transliteration (Using the examples above, setting `60=9~us/` in `mapping.txt` file will replace all the `9` characters at the end of words with `us` in the `output.txt` file)
 
+  &emsp;4. Optionally, if you have it enabled, open `analysis.txt` and see the statistical analysis of `output.txt`.
+
 ### How it works:
-`v101_cleaned.txt` → `mapping.txt` → `output_numbers.txt` → `output.txt`
+`v101_cleaned.txt` → `mapping.txt` → `output_numbers.txt` → `output.txt` → `analysis.txt`
 
 ## FAQ:
 
@@ -63,8 +67,11 @@ A: By default:
 - `=` = space
 - `-` = ambiguous space
 
+**Q: What do the analysis tools do?**<br>
+A: If enabled, the analysis tools will calculate the character frequency and character entropy in `output.txt` and save the analysis to `analysis.txt`.
+
 **Q: Can I change the delimiters and symbol configuration?**<br>
-A: Yes. At the top of `main.py` you can change the delimiters and symbols. Although it is recommended to keep the defaults as they are tested and compatible with the v101 transcription.
+A: Yes. At the top of `main.py` you can change the delimiters and symbols. Although it is recommended to keep the defaults as they are tested and compatible with the v101 transcription. You can also change the space and ambiguous space characters in `mapping.py`.
 
 **Q: Does it support languages other than English?**<br>
 A: Yes. You can map the output to *any* characters or symbols supported by `.txt` files, including other languages and custom alphabets.
@@ -74,8 +81,9 @@ A: Yes. You can map the output to *any* characters or symbols supported by `.txt
 These features are being considered for future versions of TVTT:
 
 - Batch processing of multiple texts
-- Pattern and frequency analysis tools
-- Dictionary assisted mapping suggestions
+- Pattern and syllable distributon analysis
+- Morphological decomposition tools
+- Dictionary assisted mapping suggestions (maybe even ML at some point)
 - Visualization of character frequency before/after mapping
 - Option to use the EVA (or an alternative) transcription instead of the v101 transcription
 
