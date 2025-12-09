@@ -1,6 +1,6 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.2.0
+# Version: 1.2.1
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # TVTT accounts for optional contextual mapping (Eg. A character meaning something different at the beginning of a word versus the end versus the middle) (see README.md)
@@ -277,17 +277,70 @@ while i < len(inputData):
 outputFile.close()
 outputFile = open(outputPath, "r")
 
-# Read outputFile
-outputRead = outputFile.read()
-outputRead = outputRead.replace("=", "")
-outputRead = outputRead.replace("-", "")
+# Read raw output for word analysis (keeping delimiters to identify word boundaries)
+outputRaw = outputFile.read()
+
+# Prepare clean output for character analysis (stripping delimiters)
+outputClean = outputRaw.replace(spaceDelimiter, "")
+outputClean = outputClean.replace(ambiguousSpaceDelimiter, "")
+outputClean = outputClean.replace("\n", "")
 
 # Set up writing to analysis file
 analysisFile = open(analysisPath, "w")
 
 # Count characters
-counts = Counter(outputRead)
-total_chars = len(outputRead)
+counts = Counter(outputClean)
+total_chars = len(outputClean)
+
+# Word Part Analysis (Prefixes, Suffixes, Roots)
+def analyze_word_parts():
+  # Normalize delimiters: convert newlines and dashes to standard spaces for splitting
+  normalized = outputRaw.replace("\n", spaceDelimiter).replace(ambiguousSpaceDelimiter, spaceDelimiter)
+
+  # Create a list of words, removing empty entries
+  words = [w for w in normalized.split(spaceDelimiter) if w]
+  total_words = len(words)
+
+  analysisFile.write("Total Words Processed: " + str(total_words) + "\n")
+  analysisFile.write("_____________________________\n")
+
+  # Look for Bigrams (length 2) and Trigrams (length 3)
+  n_gram_lengths = [2, 3]      # Can add 4 and so on, but not recommended (1 doesn't really work because then every character is a root)
+
+  for n in n_gram_lengths:
+    prefixes = []
+    suffixes = []
+    roots = [] 
+
+    for word in words:
+      # Skip words shorter than the n-gram length
+      if len(word) < n:
+        continue
+
+      # Extract prefix
+      prefixes.append(word[:n])
+
+      # Extract suffix
+      suffixes.append(word[-n:])
+
+      # Extract roots
+      for i in range(len(word) - n + 1):
+        roots.append(word[i : i + n])
+
+    # Helper to write stats to file
+    def write_stats(title, data_list):
+      item_counts = Counter(data_list)
+      analysisFile.write("\n" + title + " (Length " + str(n) + "):\n")
+
+      # Sort by frequency and take top 20
+      for item, count in item_counts.most_common(20):
+        pct = round((count / len(data_list)) * 100, 2)
+        analysisFile.write("{ " + item + ": " + str(count) + ", " + str(pct) + "% }\n")
+
+    # Execute writing to file
+    write_stats("Common Prefixes", prefixes)
+    write_stats("Common Suffixes", suffixes)
+    write_stats("Common Roots/Sequences", roots)
 
 # Character Entropy
 def entropy():
@@ -298,14 +351,15 @@ def entropy():
     entropy -= probability * math.log2(probability)
   
   #print("Character Entropy: " + str(round(entropy, 3)) + "%\n")      # Optional for command line
-  analysisFile.write("Character Entropy: " + str(round(entropy, 3)) + "%\n\n")
+  analysisFile.write("Character Entropy: " + str(round(entropy, 3)) + "%\n")
+  analysisFile.write("_____________________________\n\n")
 
 # Character frequency
 def frequency():
   freq = {}
-  for char in set(outputRead):
+  for char in set(outputClean):
       if char != "\n":
-          freq[char] = outputRead.count(char)
+          freq[char] = outputClean.count(char)
   
   freq_sorted = sorted(freq.items(), key=lambda x: x[1], reverse=True)
   
@@ -317,11 +371,14 @@ def frequency():
     if char != "\n":
       #print("{ " + char + ": " + str(count) + ", " + str(round(count / total_chars * 100, 3)) + "% }")      # Optional for command line
       analysisFile.write("{ " + char + ": " + str(count) + ", " + str(round(count / total_chars * 100, 3)) + "% }\n")
+  
+  analysisFile.write("_____________________________\n\n")
 
 # Analyse if enabled
 if enableAnalysis:
   entropy()
   frequency()
+  analyze_word_parts()
 
 
 ### Closing ###
