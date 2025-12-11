@@ -2,14 +2,14 @@
 Create your own Voynich Manuscript transliteration based on the v101 transcription.
 
 ## Overview:
-  &emsp;TVTT is a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping of v101 characters to the characters you set. The program should optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple characters.
+  &emsp;TVTT is a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping of v101 characters to the characters you set. The program can optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple output characters. The program also analyses the output and saves it.
 
 ## Features:
   - Positional context mapping at the front and end of words using syntax (see below).
-  - Multi-character input and output mapping (e.g. `55=4o~con` in `mapping.txt`.)
-  - Character frequency and entropy analysis.
-  - Common prefix, suffix, and parts of words finding and analysis.
-  - Syntax features for functionality purposes. (Note: The same character can be mapped multiple times if you have different syntax on each line. Also, if there is only a single character in a word and the character has multiple mappings, the first mapping will be used)
+  - Multi-character input and output mapping (e.g. `54=9~con`, `55=am~d`, and `55=4o~to` all work in `mapping.txt`.)
+  - Character frequency, entropy, and part of word analysis.
+  - Common prefix, suffix, and affix finding and analysis.
+  - Position-in-word mapping features. (Note: The same character can be mapped multiple times but if you have different syntax on each line. Also, if there is only a single character in a word and the character has multiple mappings, the first character mapping will be prioritized, then the last character mapping second, and then the normal mapping third.)
 
 ## Tutorial:
 
@@ -18,6 +18,7 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   - `mapping.py` sets the default mappings in `mapping.txt` by scanning through `v101_cleaned.txt` and adding new characters to the mapping file.
   - `mapping.txt` contains the mapping to convert v101 characters into numeric placeholders and then back into your custom mapping.<br />
   - `main.py` uses `mapping.txt` to write to the `output_numbers.txt` file and then uses the `output_numbers.txt` file to write your custom mapping to `output.txt`.
+  - `output_numbers.txt` is an intermediary file for changing the transcription to use your mapping (The file gets overwritten every time `main.py` is run so there is no reason to change the file.)
   - `output.txt` contains the outputted transcription with your transliteration.
   - `analysis.txt` contains the analysis of the character frequency, character entropy, and common prefix/suffix/roots of the `output.txt` file.
 
@@ -35,9 +36,9 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   
   &emsp;1. Download the `.zip` file from the latest release and unpack it. Then navigate to the directory you unpacked the files to.<br />
   
-  &emsp;2. Open and remap the `mapping.txt` file as needed with the corresponding output character(s) (Optionally can be multiple letters, e.g. `59=9~us`) (Note: Do not delete or change anything before the `~` (e.g. `59=9~changeThis`.)<br />
+  &emsp;2. Open and remap the `mapping.txt` file as needed with the corresponding output character(s) (Optionally can be multiple letters, e.g. `59=9~us`) (Note: Do not delete or change anything before the `~` (e.g. `60=9~changeThis`) unless you are commenting that line out.<br />
   
-  &emsp;3. Run the main.py program and open the `output.txt` file to see your transliteration (Using the examples above, setting `60=9~us/` in `mapping.txt` file will replace all the `9` characters at the end of words with `us` in the `output.txt` file)
+  &emsp;3. Run the main.py program and open the `output.txt` file to see your transliteration (Using the example above, setting `59=9~us/` in `mapping.txt` file will replace all the `9` characters at the end of words with `us` in the `output.txt` file)
 
   &emsp;4. Optionally, if you have it enabled, open `analysis.txt` and see the statistical analysis of `output.txt`.
 
@@ -53,7 +54,7 @@ A: v101 is one of the standard transcription systems for representing Voynich Ma
 A: No. This is a transliteration tool, not a translation engine. It remaps the Voynich Manuscript characters into user-defined characters or strings.
 
 **Q: Can one Voynich character map to multiple input and/or output characters?**<br>
-A: Yes. The tool supports both multi-character input and output (e.g. `59=4o~con`).
+A: Yes. The tool supports both multi-character input and output (e.g. `54=9~con`, `55=am~d`, and `55=4o~to` all work.)
 
 **Q: Can different mappings apply depending on where a character appears in a word?**<br>
 A: Yes. By default, use:
@@ -72,10 +73,10 @@ A: By default:
 A: If enabled, the analysis tools will calculate the character frequency and character entropy in `output.txt` as well as finding common prefixes, suffixes, and roots. Then everything is saved to `analysis.txt`.
 
 **Q: Can I change the delimiters and symbol configuration?**<br>
-A: Yes. At the top of `main.py` you can change the delimiters and symbols. Although it is recommended to keep the defaults as they are tested and compatible with the v101 transcription. You can also change the space and ambiguous space characters in `mapping.py`.
+A: Yes. At the top of `main.py` you can change the delimiters and symbols. Although it is recommended to keep the defaults as they are tested and compatible with the v101 transcription. You can also change the space and ambiguous space characters at the top of `main.py`.
 
 **Q: Does it support languages other than English?**<br>
-A: Yes. You can map the output to *any* characters or symbols supported by `.txt` files, including other languages and custom alphabets.
+A: Yes. You can map the output to *any* characters or symbols supported by `.txt` and `.py` files, including other languages and custom alphabets.
 
 ## Planned Features:
 
@@ -84,7 +85,6 @@ These features are being considered for future versions of TVTT:
 - Batch processing of multiple texts
 - Morphological decomposition tools
 - Dictionary assisted mapping suggestions (maybe even ML at some point)
-- Visualization of character frequency before/after mapping
 - Option to use the EVA (or an alternative) transcription instead of the v101 transcription
 
 Suggestions for new features are welcome — feel free to open an issue.
@@ -94,5 +94,5 @@ Thanks for checking this tool out! If you have a feature request, improvement id
 
 ## Credits & Citations:
 &emsp;1. Voynich.nu for the copy of the v101 transcription. (https://voynich.nu/data/voyn_101.txt)<br>
-&emsp;2. ChatGPT for assistance with some bugs in the code and help with some of the documentation. (https://chatgpt.com/)<br>
-&emsp;3. Google Gemini for the `cleaner.py` script, help with the prefix/suffix/root code, and minor bug fixes. (https://gemini.google.com/)
+&emsp;2. ChatGPT for assistance with the word part analysis in `main.py` and some bugs in the code as well as some of the documentation. (https://chatgpt.com/)<br>
+&emsp;3. Google Gemini for the `cleaner.py` script and some bug fixes. (https://gemini.google.com/)
