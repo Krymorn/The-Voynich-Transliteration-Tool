@@ -1,6 +1,6 @@
 # Contributing to The Voynich Transliteration Tool (TVTT)
 
-The Voynich Transliteration Tool (TVTT) is currently developed and maintained by a single author. However, contributions, suggestions, and feedback are very welcome.
+The Voynich Transliteration Tool (TVTT) is currently developed and maintained by a single author. However, suggestions and feedback are very welcome.
 
 You do not need to be a programmer to contribute — reports, ideas, documentation fixes, and suggestions are all valuable.
 
@@ -40,9 +40,13 @@ If you find parts of the documentation confusing or incomplete, you can:
 <br>**or**
 - Submit a pull request with corrected wording
 
-Improving clarity in the README, comments, or instructions is incredibly helpful.
+Improving clarity in `README.md`, comments, or instructions is incredibly helpful.
 
 ## Code Contributions
+
+Currently this project is managed by a single author. Possibly, in the future, the project may be opened to code contributions but for now it is not.
+
+**For future refernce:**
 
 If you’d like to contribute code:
 
