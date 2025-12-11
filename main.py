@@ -1,6 +1,6 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.2.1
+# Version: 1.2.2
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # TVTT accounts for optional contextual mapping (Eg. A character meaning something different at the beginning of a word versus the end versus the middle) (see README.md)
@@ -16,6 +16,7 @@ from collections import Counter
 ### Setup ###
 # Delimiter and symbol configuration
 # Note: Recommended to keep delimiters and symbols as they are, as the default settings work specifically with the v101 transcription
+# Do not set spaceDelimiter and/or ambiguousSpaceDelimiter to "" as that will break certain parts of the code
 spaceDelimiter = "="
 ambiguousSpaceDelimiter = "-"
 
@@ -83,21 +84,21 @@ with open(mapPath, "r") as mapFile:
     if not line or spaceDelimiter not in line or "~" not in line or line.startswith(commentOutChar):
       continue
 
-    # Set up the is_final boolean
-    is_final = False
-
     # Set up the is_initial boolean
     is_initial = False
-
-    # Detect end-of-word (marked by "/" at the end of line in the input mapping file)
-    if line.endswith("/"):
-      line = line[:-1]
-      is_final = True
+    
+    # Set up the is_final boolean
+    is_final = False
 
     # Detect start-of-word (marked by "@" at the end of line in the input mapping file)
     if line.endswith(startOfWordMarker):
       line = line[:-1]
       is_initial = True
+      
+    # Detect end-of-word (marked by "/" at the end of line in the input mapping file)
+    if line.endswith(endOfWordMarker):
+      line = line[:-1]
+      is_final = True
 
     # Break line into number and character
     number, line2 = line.split(spaceDelimiter, 1)
@@ -107,17 +108,17 @@ with open(mapPath, "r") as mapFile:
     outputChar = outputChar.strip()
 
     # Write to lists
-    if is_final:
-      input_char_to_num_final[char] = number
-      input_num_to_char_final[number] = outputChar
-      char_to_num_final[char] = number
-      num_to_char_final[number] = outputChar
-
-    elif is_initial:
+    if is_initial:
       input_char_to_num_initial[char] = number
       input_num_to_char_initial[number] = outputChar
       char_to_num_initial[char] = number
       num_to_char_initial[number] = outputChar
+      
+    elif is_final:
+      input_char_to_num_final[char] = number
+      input_num_to_char_final[number] = outputChar
+      char_to_num_final[char] = number
+      num_to_char_final[number] = outputChar
 
     else:
       input_char_to_num_normal[char] = number
@@ -171,25 +172,25 @@ def getChar(inputNum, index, data, length=1):
   at_end = is_word_end(index, data, length)
   at_start = is_word_start(index, data)
 
-  # Check final character mapping first
-  if at_end and inputNum in input_num_to_char_final:
-    return input_num_to_char_final[inputNum]
+  # Check normal character mapping first
+  if inputNum in input_num_to_char_normal:
+    return input_num_to_char_normal[inputNum]
 
   # Check initial character mapping second
   if at_start and inputNum in input_num_to_char_initial:
     return input_num_to_char_initial[inputNum]
 
-  # Check normal character mapping third
-  if inputNum in input_num_to_char_normal:
-    return input_num_to_char_normal[inputNum]
+  # Check final character mapping third
+  if at_end and inputNum in input_num_to_char_final:
+    return input_num_to_char_final[inputNum]
 
-  # Go to default final character mapping fourth
-  if at_end and inputNum in num_to_char_final:
-    return num_to_char_final[inputNum]
-
-  # Go to default initial character mapping fifth
+  # Go to default initial character mapping fourth
   if at_start and inputNum in num_to_char_initial:
     return num_to_char_initial[inputNum]
+
+  # Go to default final character mapping fifth
+  if at_end and inputNum in num_to_char_final:
+    return num_to_char_final[inputNum]
 
   # Go to default character mapping sixth
   return num_to_char_normal.get(inputNum, "")
@@ -292,7 +293,7 @@ analysisFile = open(analysisPath, "w")
 counts = Counter(outputClean)
 total_chars = len(outputClean)
 
-# Word Part Analysis (Prefixes, Suffixes, Roots)
+# Word Part Analysis (Prefixes, Suffixes, Affixes)
 def analyze_word_parts():
   # Normalize delimiters: convert newlines and dashes to standard spaces for splitting
   normalized = outputRaw.replace("\n", spaceDelimiter).replace(ambiguousSpaceDelimiter, spaceDelimiter)
@@ -304,52 +305,71 @@ def analyze_word_parts():
   analysisFile.write("Total Words Processed: " + str(total_words) + "\n")
   analysisFile.write("_____________________________\n")
 
-  # Look for Bigrams (length 2) and Trigrams (length 3)
-  n_gram_lengths = [2, 3]      # Can add 4 and so on, but not recommended (1 doesn't really work because then every character is a root)
+  # Word Frequency Analysis
+  word_counts = Counter(words)
+  analysisFile.write("\nMost Common Whole Words:\n")
+  for word, count in word_counts.most_common(20):
+      pct = round((count / total_words) * 100, 2)
+      analysisFile.write(f"{{ {word}: {count}, {pct}% }}\n")
+  analysisFile.write("_____________________________\n")
 
-  for n in n_gram_lengths:
+  # Check patterns of length 2 up to 4
+  # Change as needed
+  min_ngram = 2
+  max_ngram = 4
+
+  for n in range(min_ngram, max_ngram + 1):
     prefixes = []
     suffixes = []
-    roots = [] 
+    affixes = [] # Represents "All Substrings/Roots" found anywhere in the word
 
     for word in words:
-      # Skip words shorter than the n-gram length
-      if len(word) < n:
-        continue
+      word_len = len(word)
 
-      # Extract prefix
+      # Skip words shorter than the n-gram length
+      if word_len < n:
+          continue
+
+      # Extract Prefix (Start)
       prefixes.append(word[:n])
 
-      # Extract suffix
+      # Extract Suffix (End)
       suffixes.append(word[-n:])
 
-      # Extract roots
-      for i in range(len(word) - n + 1):
-        roots.append(word[i : i + n])
+      # Extract Substrings (Roots/Substrings)
+      for i in range(0, word_len - n + 1):
+          affixes.append(word[i : i + n])
 
     # Helper to write stats to file
     def write_stats(title, data_list):
+      if not data_list:
+        analysisFile.write(f"\n{title} (Length {n}): [Insufficient Data]\n")
+        return
+
       item_counts = Counter(data_list)
-      analysisFile.write("\n" + title + " (Length " + str(n) + "):\n")
+      total_items = len(data_list)
+
+      analysisFile.write(f"\n{title} (Length {n}):\n")
 
       # Sort by frequency and take top 20
       for item, count in item_counts.most_common(20):
-        pct = round((count / len(data_list)) * 100, 2)
-        analysisFile.write("{ " + item + ": " + str(count) + ", " + str(pct) + "% }\n")
+        pct = round((count / total_items) * 100, 2)
+        analysisFile.write(f"{{ {item}: {count}, {pct}% }}\n")
 
-    # Execute writing to file
-    write_stats("Common Prefixes", prefixes)
-    write_stats("Common Suffixes", suffixes)
-    write_stats("Common Roots/Sequences", roots)
-
+    # Execute writing to analysis file
+    write_stats("Common Prefixes (Initial)", prefixes)
+    write_stats("Common Suffixes (Final)", suffixes)
+    # Renamed label to reflect that we are now scanning the whole word
+    write_stats("Common Affixes (All Positions)", affixes)
+    
 # Character Entropy
 def entropy():
   entropy = 0.0
   for count in counts.values():
-  
+
     probability = count / total_chars
     entropy -= probability * math.log2(probability)
-  
+
   #print("Character Entropy: " + str(round(entropy, 3)) + "%\n")      # Optional for command line
   analysisFile.write("Character Entropy: " + str(round(entropy, 3)) + "%\n")
   analysisFile.write("_____________________________\n\n")
@@ -358,20 +378,20 @@ def entropy():
 def frequency():
   freq = {}
   for char in set(outputClean):
-      if char != "\n":
-          freq[char] = outputClean.count(char)
-  
+    if char != "\n":
+      freq[char] = outputClean.count(char)
+
   freq_sorted = sorted(freq.items(), key=lambda x: x[1], reverse=True)
-  
+
   #print("Character Frequency:")      # Optional for command line
   analysisFile.write("Character Frequency:\n")
   # Iterate through outputArray
   for char, count in freq_sorted:
-  
+
     if char != "\n":
       #print("{ " + char + ": " + str(count) + ", " + str(round(count / total_chars * 100, 3)) + "% }")      # Optional for command line
       analysisFile.write("{ " + char + ": " + str(count) + ", " + str(round(count / total_chars * 100, 3)) + "% }\n")
-  
+
   analysisFile.write("_____________________________\n\n")
 
 # Analyse if enabled
