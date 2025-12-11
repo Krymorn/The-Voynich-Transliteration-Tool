@@ -1,6 +1,6 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.2.2
+# Version: 1.3.0
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # TVTT accounts for optional contextual mapping (Eg. A character meaning something different at the beginning of a word versus the end versus the middle) (see README.md)
@@ -11,6 +11,7 @@
 ### Imports ###
 import math
 from collections import Counter
+import deep_translator
 
 
 ### Setup ###
@@ -28,12 +29,17 @@ commentOutChar = ")"
 # Enable/disable frequency analysis and character entropy calculations
 enableAnalysis = True
 
+# Enable/disable translation attempt and/or printing list of possible languages
+enableTranslation = True
+enablePrintLanguages = False
+
 # Setup file names
 mapPath = "mapping.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
 analysisPath = "analysis.txt"
+translatePath = "translated.txt"
 
 # Read input
 with open(inputPath, "r") as inputFile:
@@ -370,7 +376,6 @@ def entropy():
     probability = count / total_chars
     entropy -= probability * math.log2(probability)
 
-  #print("Character Entropy: " + str(round(entropy, 3)) + "%\n")      # Optional for command line
   analysisFile.write("Character Entropy: " + str(round(entropy, 3)) + "%\n")
   analysisFile.write("_____________________________\n\n")
 
@@ -383,7 +388,6 @@ def frequency():
 
   freq_sorted = sorted(freq.items(), key=lambda x: x[1], reverse=True)
 
-  #print("Character Frequency:")      # Optional for command line
   analysisFile.write("Character Frequency:\n")
   # Iterate through outputArray
   for char, count in freq_sorted:
@@ -401,6 +405,44 @@ if enableAnalysis:
   analyze_word_parts()
 
 
+### Translate ###
+# Print all possible languages in terminal is enabled
+if enablePrintLanguages:
+  langs_dict = deep_translator.GoogleTranslator().get_supported_languages(as_dict=True)
+  print(langs_dict)
+
+# Empty translate file
+translateFile = open(translatePath, "w")
+translateFile.close()
+
+# Reopen translate file for appending
+translateFile = open(translatePath, "a")
+
+# Get length of output file
+outputLength = len(outputFile.read())
+outputLengthDuplicate = outputLength
+
+# Attempt to translate output if enabled
+if enableTranslation:
+  # Translate output file
+  # Replace target='en' with another language of your choice if you want (e.g. target='de' for German output)
+  chunk_size = 4500 # Keep chunk under 5000 characters to be safe (Google Translate only allows up to 5000 characters per translation)
+  
+  # Loop through outputRaw in steps of 4500
+  for i in range(0, len(outputRaw), chunk_size):
+    # Slice the string to get just this chunk
+    chunk = outputRaw[i : i + chunk_size]
+  
+    # Clean the chunk
+    # Set .replace(ambiguousSpaceDelimiter, " ") to .replace(ambiguousSpaceDelimiter, "") if you want to ignore ambiguous spaces
+    chunk_clean = chunk.replace(spaceDelimiter, " ").replace(ambiguousSpaceDelimiter, " ")
+  
+    # Translate only this chunk
+    # Default is translating to latin (set enableTransltion to True if you want a list fo every avalible language in terminal)
+    translated = deep_translator.GoogleTranslator(source='la', target='en').translate(text=chunk_clean)
+    translateFile.write(translated + " ")
+
+
 ### Closing ###
 # Close output files
 outputNumberFile.close()
@@ -408,3 +450,6 @@ outputFile.close()
 
 # Close analysis file
 analysisFile.close()
+
+# Close translate file
+translateFile.close()
