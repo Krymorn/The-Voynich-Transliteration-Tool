@@ -5,8 +5,8 @@ type: software
 authors:
   - family-names: Krymorn
 github: https://github.com/Krymorn/The-Voynich-Transliteration-Tool
-version: 1.2.1
-date-released: 2025-12-04
+version: 1.2.2
+date-released: 2025-12-11
 url: https://github.com/Krymorn/The-Voynich-Transliteration-Tool
 abstract: >
   The Voynich Transliteration Tool (TVTT) is a customizable, rule-based
