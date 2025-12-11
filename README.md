@@ -7,8 +7,9 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
 ## Features:
   - Positional context mapping at the front and end of words using syntax (see below).
   - Multi-character input and output mapping (e.g. `54=9~con`, `55=am~d`, and `55=4o~to` all work in `mapping.txt`.)
-  - Character frequency, entropy, and part of word analysis.
+  - Character frequency and entropy analysis.
   - Common prefix, suffix, and affix finding and analysis.
+  - Translation attempts from the output file after transliteration.
   - Position-in-word mapping features. (Note: The same character can be mapped multiple times but if you have different syntax on each line. Also, if there is only a single character in a word and the character has multiple mappings, the first character mapping will be prioritized, then the last character mapping second, and then the normal mapping third.)
 
 ## Tutorial:
@@ -21,6 +22,7 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   - `output_numbers.txt` is an intermediary file for changing the transcription to use your mapping (The file gets overwritten every time `main.py` is run so there is no reason to change the file.)
   - `output.txt` contains the outputted transcription with your transliteration.
   - `analysis.txt` contains the analysis of the character frequency, character entropy, and common prefix/suffix/roots of the `output.txt` file.
+  - `translated.txt` contains the attempted translation from `output.txt`.
 
   **NOTE:** Do not touch `v101.txt` and `v101_cleaned.txt`! (Although the `v101_cleaned.txt` file can be extremely useful for other use cases as it gets rid of the `<` and `>` characters and everything inside of them. Feel free to download just that file for your own use.)<br />
   
@@ -40,10 +42,10 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   
   &emsp;3. Run the main.py program and open the `output.txt` file to see your transliteration (Using the example above, setting `59=9~us/` in `mapping.txt` file will replace all the `9` characters at the end of words with `us` in the `output.txt` file)
 
-  &emsp;4. Optionally, if you have it enabled, open `analysis.txt` and see the statistical analysis of `output.txt`.
+  &emsp;4. Optionally, if you have it enabled, open `analysis.txt` and see the statistical analysis of `output.txt`. Same for seeing the attempted translation in `translated.txt`.
 
 ### How it works:
-`v101_cleaned.txt` → `mapping.txt` → `output_numbers.txt` → `output.txt` → `analysis.txt`
+`v101_cleaned.txt` → `mapping.txt` → `output_numbers.txt` → `output.txt` → `analysis.txt` and `translated.txt`
 
 ## FAQ:
 
@@ -96,3 +98,4 @@ Thanks for checking this tool out! If you have a feature request, improvement id
 &emsp;1. Voynich.nu for the copy of the v101 transcription. (https://voynich.nu/data/voyn_101.txt)<br>
 &emsp;2. ChatGPT for assistance with the word part analysis in `main.py` and some bugs in the code as well as some of the documentation. (https://chatgpt.com/)<br>
 &emsp;3. Google Gemini for the `cleaner.py` script and some bug fixes. (https://gemini.google.com/)
+&emsp;4. The deep-translator Python library for the translation tool. (https://pypi.org/project/deep-translator/)
