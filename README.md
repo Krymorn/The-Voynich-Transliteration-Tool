@@ -80,6 +80,9 @@ A: Yes. At the top of `main.py` you can change the delimiters and symbols. Altho
 **Q: Does it support languages other than English?**<br>
 A: Yes. You can map the output to *any* characters or symbols supported by `.txt` and `.py` files, including other languages and custom alphabets.
 
+**Q: Where can I get a v101 transliteration reference?**<br>
+A: Voynich.nu has great reference charts for many of the Voynich Manuscript transcriptions (https://www.voynich.nu/transcr.html).
+
 ## Planned Features:
 
 These features are being considered for future versions of TVTT:
