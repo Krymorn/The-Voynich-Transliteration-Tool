@@ -99,6 +99,6 @@ Thanks for checking this tool out! If you have a feature request, improvement id
 
 ## Credits & Citations:
 &emsp;1. Voynich.nu for the copy of the v101 transcription. (https://voynich.nu/data/voyn_101.txt)<br>
-&emsp;2. ChatGPT for assistance with the word part analysis in `main.py` and some bugs in the code as well as some of the documentation. (https://chatgpt.com/)<br>
-&emsp;3. Google Gemini for the `cleaner.py` script and some bug fixes. (https://gemini.google.com/)
+&emsp;2. ChatGPT for assistance with the word part analysis and some bugs as well as some of the documentation. (https://chatgpt.com/)<br>
+&emsp;3. Google Gemini for the `cleaner.py` script, help with the frequency analysis tools, and some bug fixes. (https://gemini.google.com/)<br>
 &emsp;4. The deep-translator Python library for the translation tool. (https://pypi.org/project/deep-translator/)
