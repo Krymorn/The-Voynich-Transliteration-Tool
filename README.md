@@ -90,6 +90,7 @@ These features are being considered for future versions of TVTT:
 - Batch processing of multiple texts
 - Morphological decomposition tools
 - Dictionary assisted mapping suggestions (maybe even NLP & ML at some point)
+- Mid-word occurence based mapping
 - Option to use the EVA (or an alternative) transcription instead of the v101 transcription
 
 Suggestions for new features are welcome — feel free to open an issue.
