@@ -1,6 +1,6 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.3.0
+# Version: 1.3.1
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # TVTT accounts for optional contextual mapping (Eg. A character meaning something different at the beginning of a word versus the end versus the middle) (see README.md)
@@ -26,11 +26,16 @@ startOfWordMarker = "@"
 
 commentOutChar = ")"
 
+firstOccuranceMarker = "'"
+secondOccuranceMarker = "\"" # Note: Python requires you to have a \ before a " character because """ is used for multi-line commenting
+thirdOccuranceMarker = ":"
+fourthOccuranceMarker = ";"
+
 # Enable/disable frequency analysis and character entropy calculations
 enableAnalysis = True
 
 # Enable/disable translation attempt and/or printing list of possible languages
-enableTranslation = True
+enableTranslation = False
 enablePrintLanguages = False
 
 # Setup file names
@@ -77,25 +82,69 @@ char_to_num_initial = {}
 input_num_to_char_initial = {}
 input_char_to_num_initial = {}
 
+num_to_char_first = {}
+char_to_num_first = {}
+
+input_num_to_char_first = {}
+input_char_to_num_first = {}
+
+num_to_char_second = {}
+char_to_num_second = {}
+
+input_num_to_char_second = {}
+input_char_to_num_second = {}
+
+num_to_char_third = {}
+char_to_num_third = {}
+
+input_num_to_char_third = {}
+input_char_to_num_third = {}
+
+num_to_char_fourth = {}
+char_to_num_fourth = {}
+
+input_num_to_char_fourth = {}
+input_char_to_num_fourth = {}
+
 
 ### Mapping ###
+# Set up the is_initial boolean
+is_initial = False
+
+# Set up the is_final boolean
+is_final = False
+
+# Set up the is_first boolean
+is_first = False
+
+# Set up the is_second boolean
+is_second = False
+
+# Set up the is_third boolean
+is_third = False
+
+# Set up the is_fourth boolean
+is_fourth = False
+
 # Open and read mapping file
 with open(mapPath, "r") as mapFile:
 
   # Read each line
   for line in mapFile:
+    
     line = line.strip()
+
+    is_initial = False
+    is_final = False
+    is_first = False
+    is_second = False
+    is_third = False
+    is_fourth = False
 
     # Ignore lines that are empty, formatted wrong, or are commented out by a ) character
     if not line or spaceDelimiter not in line or "~" not in line or line.startswith(commentOutChar):
       continue
-
-    # Set up the is_initial boolean
-    is_initial = False
     
-    # Set up the is_final boolean
-    is_final = False
-
     # Detect start-of-word (marked by "@" at the end of line in the input mapping file)
     if line.endswith(startOfWordMarker):
       line = line[:-1]
@@ -105,6 +154,26 @@ with open(mapPath, "r") as mapFile:
     if line.endswith(endOfWordMarker):
       line = line[:-1]
       is_final = True
+
+    # Detect end-of-word (marked by "/" at the end of line in the input mapping file)
+    if line.endswith(firstOccuranceMarker):
+      line = line[:-1]
+      is_first = True
+
+    # Detect end-of-word (marked by "/" at the end of line in the input mapping file)
+    if line.endswith(secondOccuranceMarker):
+      line = line[:-1]
+      is_second = True
+
+    # Detect end-of-word (marked by "/" at the end of line in the input mapping file)
+    if line.endswith(thirdOccuranceMarker):
+      line = line[:-1]
+      is_third = True
+
+    # Detect end-of-word (marked by "/" at the end of line in the input mapping file)
+    if line.endswith(fourthOccuranceMarker):
+      line = line[:-1]
+      is_fourth = True
 
     # Break line into number and character
     number, line2 = line.split(spaceDelimiter, 1)
@@ -126,6 +195,30 @@ with open(mapPath, "r") as mapFile:
       char_to_num_final[char] = number
       num_to_char_final[number] = outputChar
 
+    elif is_first:
+      input_char_to_num_first[char] = number
+      input_num_to_char_first[number] = outputChar
+      char_to_num_first[char] = number
+      num_to_char_first[number] = outputChar
+
+    elif is_second:
+      input_char_to_num_second[char] = number
+      input_num_to_char_second[number] = outputChar
+      char_to_num_second[char] = number
+      num_to_char_second[number] = outputChar
+
+    elif is_third:
+      input_char_to_num_third[char] = number
+      input_num_to_char_third[number] = outputChar
+      char_to_num_third[char] = number
+      num_to_char_third[number] = outputChar
+
+    elif is_fourth:
+      input_char_to_num_fourth[char] = number
+      input_num_to_char_fourth[number] = outputChar
+      char_to_num_fourth[char] = number
+      num_to_char_fourth[number] = outputChar
+
     else:
       input_char_to_num_normal[char] = number
       input_num_to_char_normal[number] = outputChar
@@ -137,12 +230,24 @@ all_keys = (
   list(input_char_to_num_normal.keys()) +
   list(input_char_to_num_final.keys()) +
   list(input_char_to_num_initial.keys()) +
+  list(input_char_to_num_first.keys()) +
+  list(input_char_to_num_second.keys()) +
+  list(input_char_to_num_third.keys()) +
+  list(input_char_to_num_fourth.keys()) +
   list(char_to_num_normal.keys()) +
   list(char_to_num_final.keys()) + 
   list(char_to_num_initial.keys()) +
+  list(char_to_num_first.keys()) +
+  list(char_to_num_second.keys()) +
+  list(char_to_num_third.keys()) +
+  list(char_to_num_fourth.keys()) +
   list(num_to_char_normal.keys()) + 
   list(num_to_char_final.keys()) +
-  list(num_to_char_initial.keys())
+  list(num_to_char_initial.keys()) +
+  list(num_to_char_first.keys()) +
+  list(num_to_char_second.keys()) +
+  list(num_to_char_third.keys()) +
+  list(num_to_char_fourth.keys())
 )
 
 MAX_KEY_LENGTH = max((len(k) for k in all_keys), default=1)
@@ -151,87 +256,98 @@ MAX_KEY_LENGTH = max((len(k) for k in all_keys), default=1)
 ### Functions ###
 # Determine if the indexed character starts a word
 def is_word_start(index, data):
-  # If it's the very first character of the file
-  if index == 0:
+  if index == 0: 
     return True
-
-  # Check if the previous character was a separator
   prev_char = data[index - 1]
   return prev_char in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
 
 # Determine if the indexed character ends a word
 def is_word_end(index, data, length=1):
-  if index + length >= len(data):
+  if index + length >= len(data): 
     return True
-
-  # Check if the previous character was a separator
   return data[index + length] in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
 
-# Get the character in the output mapping that corrosponds to the inputted number
-def getChar(inputNum, index, data, length=1):
+# Get the character in the output mapping that corresponds to the inputted number
+def getChar(inputNum, index, data, length, occurrence):
 
   # Return newlines as needed
-  if inputNum == "\n":
+  if inputNum == "\n": 
     return "\n"
 
-  # Check if character is at the end of a word
+  # Check context
   at_end = is_word_end(index, data, length)
   at_start = is_word_start(index, data)
 
-  # Check normal character mapping first
-  if inputNum in input_num_to_char_normal:
-    return input_num_to_char_normal[inputNum]
-
-  # Check initial character mapping second
+  # 1. Check initial (Start of word)
   if at_start and inputNum in input_num_to_char_initial:
     return input_num_to_char_initial[inputNum]
 
-  # Check final character mapping third
+  # 2. Check final (End of word)
   if at_end and inputNum in input_num_to_char_final:
     return input_num_to_char_final[inputNum]
 
-  # Go to default initial character mapping fourth
-  if at_start and inputNum in num_to_char_initial:
-    return num_to_char_initial[inputNum]
+  # 3. Check occurrence counts (1st time seeing this char, 2nd time, etc.)
+  # Only applies to a maximum of 4 characters because that is the maximum numbers of times the same character appears in a word in the Voynich Manuscript
+  if occurrence == 1 and inputNum in input_num_to_char_first:
+    return input_num_to_char_first[inputNum]
 
-  # Go to default final character mapping fifth
-  if at_end and inputNum in num_to_char_final:
-    return num_to_char_final[inputNum]
+  if occurrence == 2 and inputNum in input_num_to_char_second:
+    return input_num_to_char_second[inputNum]
 
-  # Go to default character mapping sixth
+  if occurrence == 3 and inputNum in input_num_to_char_third:
+    return input_num_to_char_third[inputNum]
+
+  if occurrence == 4 and inputNum in input_num_to_char_fourth:
+    return input_num_to_char_fourth[inputNum]
+
+  # 4. Check normal (Default fallback)
+  if inputNum in input_num_to_char_normal:
+    return input_num_to_char_normal[inputNum]
+
   return num_to_char_normal.get(inputNum, "")
 
-# Get the number in the numbers mapping that corrosponds to the inputted character
-def getNum(inputChar, index, data):
+# Get the number in the numbers mapping that corresponds to the inputted character
+def getNum(inputChar, index, data, occurrence):
 
-  # Return newlines as needed
-  if inputChar == "\n":
+  if inputChar == "\n": 
     return "\n"
 
-  # Calculate length based on the input string (e.g., "4o" is length 2)
   length = len(inputChar)
-
-  # Determine if character is at beginning, somewhere in the middle, or end of the word
   at_end = is_word_end(index, data, length)
   at_start = is_word_start(index, data)
 
-  # Go to default final character mapping
+  # 1. Check Initial/Final
   if at_end and inputChar in char_to_num_final:
     return char_to_num_final[inputChar]
 
-  # Go to default initial character mapping
   if at_start and inputChar in char_to_num_initial:
     return char_to_num_initial[inputChar]
 
+  # 2. Check Occurrence Counts
+  if occurrence == 1 and inputChar in char_to_num_first:
+    return char_to_num_first[inputChar]
+
+  if occurrence == 2 and inputChar in char_to_num_second:
+    return char_to_num_second[inputChar]
+
+  if occurrence == 3 and inputChar in char_to_num_third:
+    return char_to_num_third[inputChar]
+
+  if occurrence == 4 and inputChar in char_to_num_fourth:
+    return char_to_num_fourth[inputChar]
+
+  # 3. Fallback to Normal
   return char_to_num_normal.get(inputChar, "")
-
-
+  
+  
 ### Main ###
 # Start numbers file with a . for formatting purposes
 outputNumberFile.write(".")
 
-# Use a while loop to allow skipping indices for multi-character matches
 i = 0
+# Dictionary to track how many times specific characters appear in the current word
+word_char_counts = {}
+
 while i < len(inputData):
   ch = inputData[i]
 
@@ -239,6 +355,7 @@ while i < len(inputData):
   if ch == "\n":
     outputNumberFile.write("\n.")
     outputFile.write("\n")
+    word_char_counts.clear() # Reset all counts for new word
     i += 1
     continue
 
@@ -246,6 +363,7 @@ while i < len(inputData):
   if ch in [spaceDelimiter, ambiguousSpaceDelimiter]:
     outputNumberFile.write(ch + ".")
     outputFile.write(ch)
+    word_char_counts.clear() # Reset all counts for new word
     i += 1
     continue
 
@@ -258,18 +376,27 @@ while i < len(inputData):
     if i + length > len(inputData):
       continue
 
-    # Setting the characters
     inputChars = inputData[i : i + length]
 
-    # If the sequence exists in the input map, use it
-    if inputChars in input_char_to_num_normal or inputChars in input_char_to_num_final or inputChars in input_char_to_num_initial:
+    # If the sequence exists in ANY of the input maps
+    if (inputChars in input_char_to_num_normal or 
+      inputChars in input_char_to_num_final or 
+      inputChars in input_char_to_num_initial or 
+      inputChars in input_char_to_num_first or 
+      inputChars in input_char_to_num_second or 
+      inputChars in input_char_to_num_third or 
+      inputChars in input_char_to_num_fourth):
       match_str = inputChars
       match_len = length
       break
 
-  # Get characters and numbers
-  encoded = getNum(match_str, i, inputData)
-  decoded = getChar(encoded, i, inputData, match_len)
+  # Calculate occurrence for this specific token
+  current_occurrence = word_char_counts.get(match_str, 0) + 1
+  word_char_counts[match_str] = current_occurrence
+
+  # Get characters and numbers, passing the occurrence count
+  encoded = getNum(match_str, i, inputData, current_occurrence)
+  decoded = getChar(encoded, i, inputData, match_len, current_occurrence)
 
   # Write to output files
   outputNumberFile.write(encoded + ".")
