@@ -6,8 +6,9 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
 
 ## Features:
   - Positional context mapping at the front and end of words using syntax (see below).
-  - Multi-character input and output mapping (e.g. `54=9~con`, `55=am~d`, and `55=4o~to` all work in `mapping.txt`.)
-  - Character frequency and entropy analysis.
+  - Multi-character mapping (Eg. `53=9~con`, `54=am~d`, and `55=4o~to` all work in `mapping.txt`.)
+  - Mid-word occurence mapping up to 4 occurences (the Voynich Manuscript has a maximum character occurance count of 4) (Note: If you have the first occurance mapped as well as first and/or last character mapping, the first and/or last character mappings will be prioritized, although this may be changed in a future version.)
+  - Character single and multi-character frequency and entropy analysis including positional frequency analysis.
   - Common prefix, suffix, and affix finding and analysis.
   - Translation attempts from the output file after transliteration.
   - Position-in-word mapping features. (Note: The same character can be mapped multiple times but if you have different syntax on each line. Also, if there is only a single character in a word and the character has multiple mappings, the first character mapping will be prioritized, then the last character mapping second, and then the normal mapping third.)
@@ -31,6 +32,7 @@ Create your own Voynich Manuscript transliteration based on the v101 transcripti
   ### Syntax: 
   - `@`  —  at the end of a line means the program will use that mapping number if the character is at the start of a word (e.g. `56=9@` only uses that mapping if `9` is at the front of a word). 
   - `/`  —  at the end of a line means the program will use that mapping number if the character is at the end of a word (e.g. `57=9/` only uses that mapping if `9` is at the end of a word).
+  - `'`, `"`, `:`, `;` in that order are for mid-word occurance mapping where `'` is the first occurence and `;` is the last occurence.
   - `)`  —  at the beginning of a line means that line will be ignored (Essentially commented out) (e.g. `)58=9~us` ignores that line completely).
   - Having no special syntax in the line just works normally for any position in a word (Note: The same character can be mapped multiple times if you have different syntax on each line) (e.g. `58=9~us` uses that mapping for `9` if it is anywhere in the current word.)
 
@@ -62,6 +64,7 @@ A: Yes. The tool supports both multi-character input and output (e.g. `54=9~con`
 A: Yes. By default, use:
 - `@` for start of word
 - `/` for end of word
+- `'`, `"`, `:`, and `;` for mid-word occurence mapping
 
 **Q: Can this help decode the Voynich Manuscript?**<br>
 A: It is not a decoding solution by itself, but it can assist researchers in testing substitution schemes and hypotheses.
@@ -87,10 +90,9 @@ A: Voynich.nu has great reference charts for many of the Voynich Manuscript tran
 
 These features are being considered for future versions of TVTT:
 
-- Batch processing of multiple texts
+- Batch processing of multiple texts for comparison
 - Morphological decomposition tools
-- Dictionary assisted mapping suggestions (maybe even NLP & ML at some point)
-- Mid-word occurence based mapping
+- Multi-language dictionary assisted mapping suggestions (maybe even NLP & ML at some point)
 - Option to use the EVA (or an alternative) transcription instead of the v101 transcription
 
 Suggestions for new features are welcome — feel free to open an issue.
@@ -100,6 +102,6 @@ Thanks for checking this tool out! If you have a feature request, improvement id
 
 ## Credits & Citations:
 &emsp;1. Voynich.nu for the copy of the v101 transcription. (https://voynich.nu/data/voyn_101.txt)<br>
-&emsp;2. ChatGPT for assistance with the word part analysis and some bugs as well as some of the documentation. (https://chatgpt.com/)<br>
-&emsp;3. Google Gemini for the `cleaner.py` script, help with the frequency analysis tools, and some bug fixes. (https://gemini.google.com/)<br>
-&emsp;4. The deep-translator Python library for the translation tool. (https://pypi.org/project/deep-translator/)
+&emsp;2. ChatGPT for assistance with the word part analysis and some bugs as well as some of the documentation. (https://chatgpt.com)<br>
+&emsp;3. Google Gemini for the `cleaner.py` script, help with the occurence and analysis tools, and bug fixes. (https://gemini.google.com)<br>
+&emsp;4. The deep-translator Python library for the translation tool. (https://pypi.org/project/deep-translator)
