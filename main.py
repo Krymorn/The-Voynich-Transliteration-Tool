@@ -1,24 +1,22 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.3.1
+# Version: 1.3.2
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # TVTT accounts for optional contextual mapping (Eg. A character meaning something different at the beginning of a word versus the end versus the middle) (see README.md)
-# 
+#
 # Note: The v101 transcription used does not include the v101 extended character set.
-
 
 ### Imports ###
 import math
 from collections import Counter
 import deep_translator
 
-
 ### Setup ###
 # Delimiter and symbol configuration
 # Note: Recommended to keep delimiters and symbols as they are, as the default settings work specifically with the v101 transcription
 # Do not set spaceDelimiter and/or ambiguousSpaceDelimiter to "" as that will break certain parts of the code
-spaceDelimiter = "="
+spaceDelimiter = "_"
 ambiguousSpaceDelimiter = "-"
 
 endOfWordMarker = "/"
@@ -27,19 +25,19 @@ startOfWordMarker = "@"
 commentOutChar = ")"
 
 firstOccuranceMarker = "'"
-secondOccuranceMarker = "\"" # Note: Python requires you to have a \ before a " character because """ is used for multi-line commenting
+secondOccuranceMarker = "\""  # Note: Python requires you to have a \ before a " character because """ is used for multi-line commenting
 thirdOccuranceMarker = ":"
 fourthOccuranceMarker = ";"
 
 # Enable/disable frequency analysis and character entropy calculations
-enableAnalysis = True
+enableAnalysis = False
 
 # Enable/disable translation attempt and/or printing list of possible languages
 enableTranslation = False
 enablePrintLanguages = False
 
 # Setup file names
-mapPath = "mapping.txt"
+mapPath = "j_mapping.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
@@ -65,16 +63,16 @@ outputNumberFile = open(outputNumberPath, "w")
 
 # Setup lists
 num_to_char_normal = {}
-num_to_char_final  = {}
+num_to_char_final = {}
 
 char_to_num_normal = {}
-char_to_num_final  = {}
+char_to_num_final = {}
 
 input_num_to_char_normal = {}
-input_num_to_char_final  = {}
+input_num_to_char_final = {}
 
 input_char_to_num_normal = {}
-input_char_to_num_final  = {}
+input_char_to_num_final = {}
 
 num_to_char_initial = {}
 char_to_num_initial = {}
@@ -106,7 +104,6 @@ char_to_num_fourth = {}
 input_num_to_char_fourth = {}
 input_char_to_num_fourth = {}
 
-
 ### Mapping ###
 # Set up the is_initial boolean
 is_initial = False
@@ -131,7 +128,7 @@ with open(mapPath, "r") as mapFile:
 
   # Read each line
   for line in mapFile:
-    
+
     line = line.strip()
 
     is_initial = False
@@ -142,14 +139,14 @@ with open(mapPath, "r") as mapFile:
     is_fourth = False
 
     # Ignore lines that are empty, formatted wrong, or are commented out by a ) character
-    if not line or spaceDelimiter not in line or "~" not in line or line.startswith(commentOutChar):
+    if not line or "=" not in line or "~" not in line or line.startswith(commentOutChar):
       continue
-    
+
     # Detect start-of-word (marked by "@" at the end of line in the input mapping file)
     if line.endswith(startOfWordMarker):
       line = line[:-1]
       is_initial = True
-      
+
     # Detect end-of-word (marked by "/" at the end of line in the input mapping file)
     if line.endswith(endOfWordMarker):
       line = line[:-1]
@@ -176,7 +173,7 @@ with open(mapPath, "r") as mapFile:
       is_fourth = True
 
     # Break line into number and character
-    number, line2 = line.split(spaceDelimiter, 1)
+    number, line2 = line.split("=", 1)
     char, outputChar = line2.split("~", 1)
     number = number.strip()
     char = char.strip()
@@ -188,7 +185,7 @@ with open(mapPath, "r") as mapFile:
       input_num_to_char_initial[number] = outputChar
       char_to_num_initial[char] = number
       num_to_char_initial[number] = outputChar
-      
+
     elif is_final:
       input_char_to_num_final[char] = number
       input_num_to_char_final[number] = outputChar
@@ -226,29 +223,20 @@ with open(mapPath, "r") as mapFile:
       num_to_char_normal[number] = outputChar
 
 # Calculate the maximum length of any key in the input mapping, allowing dynamic checking for tokens length (1, 2, 3, etc.)
-all_keys = (
-  list(input_char_to_num_normal.keys()) +
-  list(input_char_to_num_final.keys()) +
-  list(input_char_to_num_initial.keys()) +
-  list(input_char_to_num_first.keys()) +
-  list(input_char_to_num_second.keys()) +
-  list(input_char_to_num_third.keys()) +
-  list(input_char_to_num_fourth.keys()) +
-  list(char_to_num_normal.keys()) +
-  list(char_to_num_final.keys()) + 
-  list(char_to_num_initial.keys()) +
-  list(char_to_num_first.keys()) +
-  list(char_to_num_second.keys()) +
-  list(char_to_num_third.keys()) +
-  list(char_to_num_fourth.keys()) +
-  list(num_to_char_normal.keys()) + 
-  list(num_to_char_final.keys()) +
-  list(num_to_char_initial.keys()) +
-  list(num_to_char_first.keys()) +
-  list(num_to_char_second.keys()) +
-  list(num_to_char_third.keys()) +
-  list(num_to_char_fourth.keys())
-)
+all_keys = (list(input_char_to_num_normal.keys()) +
+            list(input_char_to_num_final.keys()) +
+            list(input_char_to_num_initial.keys()) +
+            list(input_char_to_num_first.keys()) +
+            list(input_char_to_num_second.keys()) +
+            list(input_char_to_num_third.keys()) +
+            list(input_char_to_num_fourth.keys()) +
+            list(char_to_num_normal.keys()) + list(char_to_num_final.keys()) +
+            list(char_to_num_initial.keys()) + list(char_to_num_first.keys()) +
+            list(char_to_num_second.keys()) + list(char_to_num_third.keys()) +
+            list(char_to_num_fourth.keys()) + list(num_to_char_normal.keys()) +
+            list(num_to_char_final.keys()) + list(num_to_char_initial.keys()) +
+            list(num_to_char_first.keys()) + list(num_to_char_second.keys()) +
+            list(num_to_char_third.keys()) + list(num_to_char_fourth.keys()))
 
 MAX_KEY_LENGTH = max((len(k) for k in all_keys), default=1)
 
@@ -256,22 +244,25 @@ MAX_KEY_LENGTH = max((len(k) for k in all_keys), default=1)
 ### Functions ###
 # Determine if the indexed character starts a word
 def is_word_start(index, data):
-  if index == 0: 
+  if index == 0:
     return True
   prev_char = data[index - 1]
   return prev_char in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
 
+
 # Determine if the indexed character ends a word
 def is_word_end(index, data, length=1):
-  if index + length >= len(data): 
+  if index + length >= len(data):
     return True
-  return data[index + length] in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
+  return data[index +
+              length] in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
+
 
 # Get the character in the output mapping that corresponds to the inputted number
 def getChar(inputNum, index, data, length, occurrence):
 
   # Return newlines as needed
-  if inputNum == "\n": 
+  if inputNum == "\n":
     return "\n"
 
   # Check context
@@ -306,10 +297,11 @@ def getChar(inputNum, index, data, length, occurrence):
 
   return num_to_char_normal.get(inputNum, "")
 
+
 # Get the number in the numbers mapping that corresponds to the inputted character
 def getNum(inputChar, index, data, occurrence):
 
-  if inputChar == "\n": 
+  if inputChar == "\n":
     return "\n"
 
   length = len(inputChar)
@@ -338,8 +330,8 @@ def getNum(inputChar, index, data, occurrence):
 
   # 3. Fallback to Normal
   return char_to_num_normal.get(inputChar, "")
-  
-  
+
+
 ### Main ###
 # Start numbers file with a . for formatting purposes
 outputNumberFile.write(".")
@@ -355,7 +347,7 @@ while i < len(inputData):
   if ch == "\n":
     outputNumberFile.write("\n.")
     outputFile.write("\n")
-    word_char_counts.clear() # Reset all counts for new word
+    word_char_counts.clear()  # Reset all counts for new word
     i += 1
     continue
 
@@ -363,7 +355,7 @@ while i < len(inputData):
   if ch in [spaceDelimiter, ambiguousSpaceDelimiter]:
     outputNumberFile.write(ch + ".")
     outputFile.write(ch)
-    word_char_counts.clear() # Reset all counts for new word
+    word_char_counts.clear()  # Reset all counts for new word
     i += 1
     continue
 
@@ -376,16 +368,16 @@ while i < len(inputData):
     if i + length > len(inputData):
       continue
 
-    inputChars = inputData[i : i + length]
+    inputChars = inputData[i:i + length]
 
     # If the sequence exists in ANY of the input maps
-    if (inputChars in input_char_to_num_normal or 
-      inputChars in input_char_to_num_final or 
-      inputChars in input_char_to_num_initial or 
-      inputChars in input_char_to_num_first or 
-      inputChars in input_char_to_num_second or 
-      inputChars in input_char_to_num_third or 
-      inputChars in input_char_to_num_fourth):
+    if (inputChars in input_char_to_num_normal
+        or inputChars in input_char_to_num_final
+        or inputChars in input_char_to_num_initial
+        or inputChars in input_char_to_num_first
+        or inputChars in input_char_to_num_second
+        or inputChars in input_char_to_num_third
+        or inputChars in input_char_to_num_fourth):
       match_str = inputChars
       match_len = length
       break
@@ -404,7 +396,6 @@ while i < len(inputData):
 
   # Increment index by the length of the matched token
   i += match_len
-
 
 ### Analysis ###
 # Close and reopen outputFile to make it readable
@@ -426,10 +417,12 @@ analysisFile = open(analysisPath, "w")
 counts = Counter(outputClean)
 total_chars = len(outputClean)
 
+
 # Word Part Analysis (Prefixes, Suffixes, Affixes)
 def analyze_word_parts():
   # Normalize delimiters: convert newlines and dashes to standard spaces for splitting
-  normalized = outputRaw.replace("\n", spaceDelimiter).replace(ambiguousSpaceDelimiter, spaceDelimiter)
+  normalized = outputRaw.replace("\n", spaceDelimiter).replace(
+      ambiguousSpaceDelimiter, spaceDelimiter)
 
   # Create a list of words, removing empty entries
   words = [w for w in normalized.split(spaceDelimiter) if w]
@@ -442,8 +435,8 @@ def analyze_word_parts():
   word_counts = Counter(words)
   analysisFile.write("\nMost Common Whole Words:\n")
   for word, count in word_counts.most_common(20):
-      pct = round((count / total_words) * 100, 2)
-      analysisFile.write(f"{{ {word}: {count}, {pct}% }}\n")
+    pct = round((count / total_words) * 100, 2)
+    analysisFile.write(f"{{ {word}: {count}, {pct}% }}\n")
   analysisFile.write("_____________________________\n")
 
   # Check patterns of length 2 up to 4
@@ -454,14 +447,15 @@ def analyze_word_parts():
   for n in range(min_ngram, max_ngram + 1):
     prefixes = []
     suffixes = []
-    affixes = [] # Represents "All Substrings/Roots" found anywhere in the word
+    affixes = [
+    ]  # Represents "All Substrings/Roots" found anywhere in the word
 
     for word in words:
       word_len = len(word)
 
       # Skip words shorter than the n-gram length
       if word_len < n:
-          continue
+        continue
 
       # Extract Prefix (Start)
       prefixes.append(word[:n])
@@ -471,7 +465,7 @@ def analyze_word_parts():
 
       # Extract Substrings (Roots/Substrings)
       for i in range(0, word_len - n + 1):
-          affixes.append(word[i : i + n])
+        affixes.append(word[i:i + n])
 
     # Helper to write stats to file
     def write_stats(title, data_list):
@@ -494,7 +488,8 @@ def analyze_word_parts():
     write_stats("Common Suffixes (Final)", suffixes)
     # Renamed label to reflect that we are now scanning the whole word
     write_stats("Common Affixes (All Positions)", affixes)
-    
+
+
 # Character Entropy
 def entropy():
   entropy = 0.0
@@ -505,6 +500,7 @@ def entropy():
 
   analysisFile.write("Character Entropy: " + str(round(entropy, 3)) + "%\n")
   analysisFile.write("_____________________________\n\n")
+
 
 # Character frequency
 def frequency():
@@ -521,9 +517,11 @@ def frequency():
 
     if char != "\n":
       #print("{ " + char + ": " + str(count) + ", " + str(round(count / total_chars * 100, 3)) + "% }")      # Optional for command line
-      analysisFile.write("{ " + char + ": " + str(count) + ", " + str(round(count / total_chars * 100, 3)) + "% }\n")
+      analysisFile.write("{ " + char + ": " + str(count) + ", " +
+                         str(round(count / total_chars * 100, 3)) + "% }\n")
 
   analysisFile.write("_____________________________\n\n")
+
 
 # Analyse if enabled
 if enableAnalysis:
@@ -531,11 +529,11 @@ if enableAnalysis:
   frequency()
   analyze_word_parts()
 
-
 ### Translate ###
 # Print all possible languages in terminal is enabled
 if enablePrintLanguages:
-  langs_dict = deep_translator.GoogleTranslator().get_supported_languages(as_dict=True)
+  langs_dict = deep_translator.GoogleTranslator().get_supported_languages(
+      as_dict=True)
   print(langs_dict)
 
 # Empty translate file
@@ -553,22 +551,22 @@ outputLengthDuplicate = outputLength
 if enableTranslation:
   # Translate output file
   # Replace target='en' with another language of your choice if you want (e.g. target='de' for German output)
-  chunk_size = 4500 # Keep chunk under 5000 characters to be safe (Google Translate only allows up to 5000 characters per translation)
-  
+  chunk_size = 4500  # Keep chunk under 5000 characters to be safe (Google Translate only allows up to 5000 characters per translation)
+
   # Loop through outputRaw in steps of 4500
   for i in range(0, len(outputRaw), chunk_size):
     # Slice the string to get just this chunk
-    chunk = outputRaw[i : i + chunk_size]
-  
+    chunk = outputRaw[i:i + chunk_size]
+
     # Clean the chunk
     # Set .replace(ambiguousSpaceDelimiter, " ") to .replace(ambiguousSpaceDelimiter, "") if you want to ignore ambiguous spaces
     chunk_clean = chunk.replace(spaceDelimiter, " ").replace(ambiguousSpaceDelimiter, " ")
-  
+
     # Translate only this chunk
     # Default is translating to latin (set enableTransltion to True if you want a list fo every avalible language in terminal)
-    translated = deep_translator.GoogleTranslator(source='la', target='en').translate(text=chunk_clean)
+    translated = deep_translator.GoogleTranslator(
+        source='la', target='en').translate(text=chunk_clean)
     translateFile.write(translated + " ")
-
 
 ### Closing ###
 # Close output files
