@@ -1,107 +1,95 @@
 # The Voynich Transliteration Tool (TVTT)
+**Version 1.5.0**
+
 Create your own Voynich Manuscript transliteration based on the v101 transcription.
 
-## Overview:
-  &emsp;TVTT is a program that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping of v101 characters to the characters you set. The program can optionally account for scribal abbreviation in the Voynich Manuscript and the possibility of a single Voynich Manuscript character corresponding to multiple output characters. The program also analyses the output and saves it.
+## Overview
+TVTT is a cryptographic workbench that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping. 
 
-## Features:
-  - Positional context mapping at the front and end of words using syntax (see below).
-  - Multi-character mapping (Eg. `53=9~con`, `54=am~d`, and `55=4o~to` all work in `mapping.txt`.)
-  - Mid-word occurrence mapping up to 4 occurrences (the Voynich Manuscript has a maximum character occurance count of 4) (Note: If you have the first occurance mapped as well as first and/or last character mapping, the first and/or last character mappings will be prioritized, although this may be changed in a future version.)
-  - Character single and multi-character frequency and entropy analysis including positional frequency analysis.
-  - Common prefix, suffix, and affix finding and analysis.
-  - Translation attempts from the output file after transliteration.
-  - Position-in-word mapping features. (Note: The same character can be mapped multiple times but if you have different syntax on each line. Also, if there is only a single character in a word and the character has multiple mappings, the first character mapping will be prioritized, then the last character mapping second, and then the normal mapping third.)
+Beyond simple transliteration, the tool acts as a testing ground for decipherment theories. It performs **deep statistical verification**—including Zipf's Law analysis, Entropy calculation, and Sukhotin's vowel detection—to determine if your mapping behaves like a natural language or random noise. It also supports **Dialect Sectioning**, allowing you to isolate and test specific "languages" (Currier A vs. B) within the manuscript.
 
-## Tutorial:
+## Features
+- **Positional Context Mapping:** Distinct rules for characters at the start (`@`), end (`/`), or middle of words.
+- **Occurrence Mapping:** Specific rules for the 1st, 2nd, 3rd, or 4th time a character appears in a word (using `'`, `"`, `:`, `;`).
+- **Multi-character Mapping:** Map one input character to many (e.g., `53=9~con`) or many input characters to one (e.g., `101=4o~d`).
+- **Dialect Sectioning:** Restrict processing to specific line ranges to isolate "Currier A" (Herbal) or "Currier B" (Biological) dialects.
+- **Translation Module:** Attempt to automatically translate your output into English (via Google Translate) to check for intelligible sentences.
+- **Deep Statistical Analysis:**
+  - **Entropy Calculation:** Measures the randomness of your output.
+  - **Sukhotin Vowel Analysis:** Algorithmically predicts vowels based on character adjacency.
+  - **Reduplication Detection:** Verifies if your mapping preserves the manuscript's frequent word repetition (e.g., *chol chol*).
+  - **Zipf's Law Visualization:** Generates a log-log plot to compare your text's frequency distribution against natural language laws.
+- **HTML Comparison Report:** Generates a side-by-side visual report (`comparison.html`) of the original text vs. your transliteration.
 
-  ### File Uses:
-  - `cleaner.py` cleans the v101 transcription from `v101.txt` and puts it in `v101_cleaned.txt`.
-  - `mapping.py` sets the default mappings in `mapping.txt` by scanning through `v101_cleaned.txt` and adding new characters to the mapping file.
-  - `mapping.txt` contains the mapping to convert v101 characters into numeric placeholders and then back into your custom mapping.<br />
-  - `main.py` uses `mapping.txt` to write to the `output_numbers.txt` file and then uses the `output_numbers.txt` file to write your custom mapping to `output.txt`.
-  - `output_numbers.txt` is an intermediary file for changing the transcription to use your mapping (The file gets overwritten every time `main.py` is run so there is no reason to change the file.)
-  - `output.txt` contains the outputted transcription with your transliteration.
-  - `analysis.txt` contains the analysis of the character frequency, character entropy, and common prefix/suffix/roots of the `output.txt` file.
-  - `translated.txt` contains the attempted translation from `output.txt`.
+## Tutorial
 
-  **NOTE:** Do not touch `v101.txt` and `v101_cleaned.txt`! (Although the `v101_cleaned.txt` file can be extremely useful for other use cases as it gets rid of the `<` and `>` characters and everything inside of them. Feel free to download just that file for your own use.)<br />
-  
-  **NOTE:** Each mapping must be on a new line in `mapping.txt`!<br>
+### File Structure
+- `cleaner.py`: Cleans the raw `v101.txt` and saves it to `v101_cleaned.txt`.
+- `mapping.py`: Scans the cleaned text to auto-populate `mapping.txt` with all unique characters found.
+- `mapping.txt`: The core configuration file where you define your substitution rules.
+- `main.py`: Reads `mapping.txt`, processes the text, and generates all outputs.
+- `output.txt`: The final transliterated text (uses underscores `_` for spaces).
+- `output_numbers.txt`: A debug file showing the numerical IDs used during processing.
+- `analysis.txt`: Statistical data (Frequency, Entropy, Affixes, Vowel predictions, Reduplication).
+- `zipf_analysis.png`: A graph visualizing word frequency.
+- `comparison.html`: A visual report comparing source vs. output line-by-line.
+- `translated.txt`: (Optional) The machine-translated version of your output.
 
-  ### Syntax: 
-  - `@`  —  at the end of a line means the program will use that mapping number if the character is at the start of a word (e.g. `56=9@` only uses that mapping if `9` is at the front of a word). 
-  - `/`  —  at the end of a line means the program will use that mapping number if the character is at the end of a word (e.g. `57=9/` only uses that mapping if `9` is at the end of a word).
-  - `'`, `"`, `:`, `;` in that order are for mid-word occurance mapping where `'` is the first occurrence and `;` is the last occurrence.
-  - `)`  —  at the beginning of a line means that line will be ignored (Essentially commented out) (e.g. `)58=9~us` ignores that line completely).
-  - Having no special syntax in the line just works normally for any position in a word (Note: The same character can be mapped multiple times if you have different syntax on each line) (e.g. `58=9~us` uses that mapping for `9` if it is anywhere in the current word.)
+**NOTE:** Do not edit `v101.txt` or `v101_cleaned.txt` manually.
 
-  ### Instructions:
-  
-  &emsp;1. Download the `.zip` file from the latest release and unpack it. Then navigate to the directory you unpacked the files to.<br />
-  
-  &emsp;2. Open and remap the `mapping.txt` file as needed with the corresponding output character(s) (Optionally can be multiple letters, e.g. `59=9~us`) (Note: Do not delete or change anything before the `~` (e.g. `60=9~changeThis`) unless you are commenting that line out.<br />
-  
-  &emsp;3. Run the main.py program and open the `output.txt` file to see your transliteration (Using the example above, setting `59=9~us/` in `mapping.txt` file will replace all the `9` characters at the end of words with `us` in the `output.txt` file)
+### Syntax for `mapping.txt`
+- **`@`** — End of line: Use this mapping only if the character is at the **start** of a word (e.g., `56=9~s@`).
+- **`/`** — End of line: Use this mapping only if the character is at the **end** of a word (e.g., `57=9~us/`).
+- **`'`**, **`"`**, **`:`**, **`;`** — Use these for the 1st, 2nd, 3rd, and 4th **occurrence** of a character within a single word.
+- **`)`** — Start of line: Comment out the line (ignore it). Lines with incorrect syntax will also be ignored.
+- **No Symbol** — Provided mapping will be used if no positional rule matches.
 
-  &emsp;4. Optionally, if you have it enabled, open `analysis.txt` and see the statistical analysis of `output.txt`. Same for seeing the attempted translation in `translated.txt`.
+### Instructions
+1.  **Install:** Download the source code from the latest release. Ensure you have Python installed.
+    * *Optional (But recommended):* Install dependencies for graphs/translation: `pip install matplotlib deep-translator numpy`
+2.  **Configure:** Open `main.py` to adjust settings:
+    * Set `startLine` and `endLine` to test specific sections (e.g., 0-700 for Herbal Section) or leave `endline` as `None` to continue until the end of the input file.
+    * Toggle `enableHTMLComparison` or `enableZipfsLawGeneration` as needed.
+    * Set `enableTranslation = True` if you want to attempt Google Translate on your output.
+3.  **Map:** Edit `mapping.txt` to define your substitution cipher.
+4.  **Run:** Execute `main.py`. (Run `python main.py` in Terminal/Command Line)
+5.  **Analyze:** Review `output.txt`, `analysis.txt`, `zipf_analysis.png`, and `comparison.html`.
 
-### How it works:
-`v101_cleaned.txt` → `mapping.txt` → `output_numbers.txt` → `output.txt` → `analysis.txt` and `translated.txt`
+## Troubleshooting & FAQ
 
-## FAQ:
+### **CRITICAL: "Why does `comparison.html` look unchanged?"**
+**Browser Caching Issue:** If you run the script and `comparison.html` still shows your old results (or the original text), your web browser is likely loading a cached version of the file.
+* **Fix:** With the HTML file open in your browser, perform a **Hard Refresh** by pressing `Ctrl + F5` (Windows) or `Cmd + Shift + R` (Mac). This forces the browser to reload the actual file from the disk.
 
-**Q: What is v101?**  
-A: v101 is one of the standard transcription systems for representing Voynich Manuscript characters in a text format.
+**Q: Can I map multiple input characters to a single letter?**
+A: Yes. The tool supports multi-character inputs (n-graphs).
+* *Example:* `101=4o~d` (This tells the tool to treat every instance of the sequence "4o" as the letter "d").
+* The tool prioritizes the longest matches first, so if you have mappings for both `4` and `4o`, it will correctly identify `4o` as a single unit before falling back to `4`.
 
-**Q: Is this a translation tool?**  
-A: No. This is a transliteration tool, not a translation engine. It remaps the Voynich Manuscript characters into user-defined characters or strings.
+**Q: Can I map one Voynich character to multiple letters?**
+A: Yes.
+* *Example:* `53=9~con` (This maps the single symbol `9` to the string `con`).
 
-**Q: Can one Voynich character map to multiple input and/or output characters?**<br>
-A: Yes. The tool supports both multi-character input and output (e.g. `54=9~con`, `55=am~d`, and `55=4o~to` all work.)
+**Q: What are Currier A and Currier B?**
+A: These are the two distinct "languages" or "hands" in the manuscript. You can use the `startLine` and `endLine` variables in `main.py` to test your mapping on just one section at a time (e.g., lines 1–700 for Currier A/Herbal).
 
-**Q: Can different mappings apply depending on where a character appears in a word?**<br>
-A: Yes. By default, use:
-- `@` for start of word
-- `/` for end of word
-- `'`, `"`, `:`, and `;` for mid-word occurrence mapping
+**Q: Why is "Reduplication" analysis included?**
+A: The Voynich manuscript features frequent immediate repetition (e.g., *chol chol*). If your mapping turns this into something unnatural like *the the*, it may be incorrect. This feature helps verify if your mapping preserves this structural feature.
 
-**Q: Can this help decode the Voynich Manuscript?**<br>
-A: It is not a decoding solution by itself, but it can assist researchers in testing substitution schemes and hypotheses.
+**Q: What does the Zipf's Law graph show?**
+A: Natural languages follow a specific slope where the most common word is twice as frequent as the second, etc. If the "Ideal" line and your "Data" points are wildly different, your output may be gibberish rather than language.
 
-**Q: Why are `=` and `-` in the output?**<br>
-A: By default:
-- `=` = space
-- `-` = ambiguous space
+**Q: Where can I get a v101 transliteration reference?**
+A: [Voynich.nu](https://www.voynich.nu/transcr.html) has excellent reference charts.
 
-**Q: What do the analysis tools do?**<br>
-A: If enabled, the analysis tools will calculate the character frequency and character entropy in `output.txt` as well as finding common prefixes, suffixes, and roots. Then everything is saved to `analysis.txt`.
+## Planned Features
+- Batch processing of multiple texts for comparison.
+- Morphological decomposition tools.
+- Multi-language dictionary assisted mapping suggestions.
+- Option to use EVA or an alternative transcription.
 
-**Q: Can I change the delimiters and symbol configuration?**<br>
-A: Yes. At the top of `main.py` you can change the delimiters and symbols. Although it is recommended to keep the defaults as they are tested and compatible with the v101 transcription. You can also change the space and ambiguous space characters at the top of `main.py`.
-
-**Q: Does it support languages other than English?**<br>
-A: Yes. You can map the output to *any* characters or symbols supported by `.txt` and `.py` files, including other languages and custom alphabets.
-
-**Q: Where can I get a v101 transliteration reference?**<br>
-A: Voynich.nu has great reference charts for many of the Voynich Manuscript transcriptions (https://www.voynich.nu/transcr.html).
-
-## Planned Features:
-
-These features are being considered for future versions of TVTT:
-
-- Batch processing of multiple texts for comparison
-- Morphological decomposition tools
-- Multi-language dictionary assisted mapping suggestions (maybe even NLP & ML at some point)
-- Option to use the EVA (or an alternative) transcription instead of the v101 transcription
-
-Suggestions for new features are welcome — feel free to open an issue.
-
-## Feedback & Ideas:
-Thanks for checking this tool out! If you have a feature request, improvement idea, or find a bug, feel free to open an issue. This project is still a work in progress, and all suggestions are welcome.
-
-## Credits & Citations:
-&emsp;1. Voynich.nu for the copy of the v101 transcription. (https://voynich.nu/data/voyn_101.txt)<br>
-&emsp;2. ChatGPT for assistance with the word part analysis, some bugs, and some documentation. (https://chatgpt.com)<br>
-&emsp;3. Google Gemini for the `cleaner.py` script, help with the analysis tools, and bug fixes. (https://gemini.google.com)<br>
-&emsp;4. The deep-translator Python library for the translation tool. (https://pypi.org/project/deep-translator)
+## Credits & Citations
+1.  **Voynich.nu** for the [v101 transcription](https://voynich.nu/data/voyn_101.txt).
+2.  **ChatGPT** for assistance with word part analysis logic.
+3.  **Google Gemini** for `cleaner.py`, statistical algorithms (Sukhotin/Zipf), and structural improvements.
+4.  **deep-translator** Python library for the translation module.
