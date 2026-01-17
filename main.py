@@ -1,9 +1,9 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.3.2
+# Version: 1.5.0
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
-# TVTT accounts for optional contextual mapping (Eg. A character meaning something different at the beginning of a word versus the end versus the middle) (see README.md)
+# Read the README.md file for a full explanation of all features.
 #
 # Note: The v101 transcription used does not include the v101 extended character set.
 
@@ -11,6 +11,8 @@
 import math
 from collections import Counter
 import deep_translator
+import matplotlib.pyplot as plt
+import numpy as np
 
 ### Setup ###
 # Delimiter and symbol configuration
@@ -25,19 +27,32 @@ startOfWordMarker = "@"
 commentOutChar = ")"
 
 firstOccuranceMarker = "'"
-secondOccuranceMarker = "\""  # Note: Python requires you to have a \ before a " character because """ is used for multi-line commenting
+secondOccuranceMarker = "\""  # Note: Python requires you to have a \ before a " character because multiple " characters in a row mess up Python syntax
 thirdOccuranceMarker = ":"
 fourthOccuranceMarker = ";"
 
+# --- FEATURE 3: SECTIONING ---
+# Limit processing to specific lines (useful for checking Currier A vs Currier B)
+# Set endLine to None to process until the end of the file.
+# Example: startLine = 0, endLine = 1000 (Analyzes only the first 1000 lines)
+startLine = 0 
+endLine = None    # Leave as "None" if you want to continue to the end of the v101 transcription
+
 # Enable/disable frequency analysis and character entropy calculations
 enableAnalysis = False
+
+# Enable/disable graph generation of Zipf's law analysis
+enableZipfsLawGeneration = False
+
+# Enable/disable HTML generation for comparison between your output and the Voynich Manuscript
+enableHTMLComparison = False
 
 # Enable/disable translation attempt and/or printing list of possible languages
 enableTranslation = False
 enablePrintLanguages = False
 
 # Setup file names
-mapPath = "j_mapping.txt"
+mapPath = "mapping.txt" # Make sure this matches your actual mapping file name
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
@@ -46,12 +61,26 @@ translatePath = "translated.txt"
 
 # Read input
 with open(inputPath, "r") as inputFile:
-  inputData = inputFile.read()
-  # Replace periods with equal signs
-  inputData = inputData.replace(".", spaceDelimiter)
+    # Read all lines into a list first
+    all_lines = inputFile.readlines()
 
-  # Replace commas with dashes
-  inputData = inputData.replace(",", ambiguousSpaceDelimiter)
+    # --- APPLY SECTIONING ---
+    # Slice the lines based on user config
+    if endLine is None:
+        selected_lines = all_lines[startLine:]
+    else:
+        selected_lines = all_lines[startLine:endLine]
+
+    print(f"Processing lines {startLine} to {len(all_lines) if endLine is None else endLine}...")
+
+    # Join them back into a single string for the rest of the script
+    inputData = "".join(selected_lines)
+
+    # Replace periods with equal signs
+    inputData = inputData.replace(".", spaceDelimiter)
+
+    # Replace commas with dashes
+    inputData = inputData.replace(",", ambiguousSpaceDelimiter)
 
 # Read output mapping file
 with open(mapPath, "r") as inputMapFile:
@@ -397,6 +426,7 @@ while i < len(inputData):
   # Increment index by the length of the matched token
   i += match_len
 
+
 ### Analysis ###
 # Close and reopen outputFile to make it readable
 outputFile.close()
@@ -410,6 +440,11 @@ outputClean = outputRaw.replace(spaceDelimiter, "")
 outputClean = outputClean.replace(ambiguousSpaceDelimiter, "")
 outputClean = outputClean.replace("\n", "")
 
+# This ensures Zipf's law can actually see individual words
+outputForWords = outputRaw.replace(spaceDelimiter, " ")
+outputForWords = outputForWords.replace(ambiguousSpaceDelimiter, " ")
+outputForWords = outputForWords.replace("\n", " ")
+
 # Set up writing to analysis file
 analysisFile = open(analysisPath, "w")
 
@@ -417,6 +452,30 @@ analysisFile = open(analysisPath, "w")
 counts = Counter(outputClean)
 total_chars = len(outputClean)
 
+# --- FEATURE 4: REDUPLICATION ---
+def analyze_reduplication(word_string):
+    analysisFile.write("\n_____________________________\n")
+
+    # Normalize delimiters
+    normalized = word_string.replace("\n", " ").replace(ambiguousSpaceDelimiter, " ").replace(spaceDelimiter, " ")
+    words = [w for w in normalized.split(" ") if w]
+
+    redup_pairs = []
+    redup_count = 0
+
+    # Check for immediate repetition (Word[i] == Word[i+1])
+    for k in range(len(words) - 1):
+        if words[k] == words[k+1]:
+            redup_count += 1
+            redup_pairs.append(words[k])
+
+    analysisFile.write(f"\nImmediate Reduplications (Word Repeated Twice): {redup_count}\n")
+    if redup_count > 0:
+        c = Counter(redup_pairs)
+        analysisFile.write("Most Frequent Repeating Words (e.g. 'cat cat'):\n")
+        for word, cnt in c.most_common(10):
+            analysisFile.write(f"{{ {word}: {cnt} times }}\n")
+    analysisFile.write("_____________________________\n")
 
 # Word Part Analysis (Prefixes, Suffixes, Affixes)
 def analyze_word_parts():
@@ -489,7 +548,6 @@ def analyze_word_parts():
     # Renamed label to reflect that we are now scanning the whole word
     write_stats("Common Affixes (All Positions)", affixes)
 
-
 # Character Entropy
 def entropy():
   entropy = 0.0
@@ -500,7 +558,6 @@ def entropy():
 
   analysisFile.write("Character Entropy: " + str(round(entropy, 3)) + "%\n")
   analysisFile.write("_____________________________\n\n")
-
 
 # Character frequency
 def frequency():
@@ -522,12 +579,175 @@ def frequency():
 
   analysisFile.write("_____________________________\n\n")
 
+# Likely vowel finding
+def sukhotin_vowel_analysis(text):  
+  # Filter valid characters
+  valid_chars = [c for c in text if c.isalnum()]
+  alphabet = sorted(list(set(valid_chars)))
+  n = len(alphabet)
+  char_to_index = {c: i for i, c in enumerate(alphabet)}
+
+  # 1. Build Adjacency Matrix (Row = char, Col = neighbor)
+  matrix = [[0] * n for _ in range(n)]
+  for k in range(len(valid_chars) - 1):
+    i = char_to_index[valid_chars[k]]
+    j = char_to_index[valid_chars[k+1]]
+    matrix[i][j] += 1
+    matrix[j][i] += 1  # Treat adjacency as undirected
+
+  # 2. Initially assume everyone is a Consonant
+  is_vowel = [False] * n
+
+  analysisFile.write("\nSukhotin's Vowel Classification:\n")
+
+  # 3. Iterative Selection
+  while True:
+    # Calculate "adjacency to current consonants" for each character
+    scores = []
+    for i in range(n):
+      if is_vowel[i]:
+        scores.append(-float('inf')) # Already a vowel
+        continue
+
+      score = 0
+      for j in range(n):
+        if not is_vowel[j]: # If neighbor is currently a consonant
+            score += matrix[i][j]
+      scores.append(score)
+
+    # Find the best candidate
+    max_score = max(scores)
+
+    # Stop if the candidate doesn't interact with consonants mainly (heuristic threshold)
+    if max_score <= 0:
+      break
+
+    candidate_idx = scores.index(max_score)
+
+    # Mark as vowel
+    is_vowel[candidate_idx] = True
+    vowel_char = alphabet[candidate_idx]
+    analysisFile.write(f"identified potential vowel: {vowel_char} (Score: {max_score})\n")
+
+    # In standard Sukhotin, you subtract the interactions of the new vowel 
+    # from the matrix so they don't count towards finding the next vowel.
+    # (Simplified implementation implies we just stop counting it in the loop above)
+
+  vowels = [alphabet[i] for i in range(n) if is_vowel[i]]
+  consonants = [alphabet[i] for i in range(n) if not is_vowel[i]]
+
+  analysisFile.write(f"\nFinal Vowels: {vowels}\n\n")
+  analysisFile.write(f"Final Consonants: {consonants}\n")
 
 # Analyse if enabled
 if enableAnalysis:
   entropy()
   frequency()
   analyze_word_parts()
+  analyze_reduplication(outputRaw) # NEW FEATURE CALL
+  sukhotin_vowel_analysis(outputClean)
+
+
+### Graph Zipf's Law ###
+# Plot Zipf's Law on a graph and save it
+def plot_zipf_law(text):
+  # Get word counts
+  words = text.split()
+  counts = Counter(words)
+
+  # Sort by frequency (most common first)
+  sorted_counts = sorted(counts.values(), reverse=True)
+
+  # Generate Ranks (1, 2, 3...)
+  ranks = np.arange(1, len(sorted_counts) + 1)
+  frequencies = np.array(sorted_counts)
+
+  # Plotting
+  plt.figure(figsize=(10, 6))
+  plt.loglog(ranks, frequencies, marker=".", linestyle="none", label="Transliterated Data")
+
+  # Generate Ideal Zipf Line (y = c / x) for comparison
+  # We anchor the ideal line to the most frequent word
+  c = frequencies[0]
+  ideal_zipf = c / ranks
+  plt.loglog(ranks, ideal_zipf, 'r--', label="Ideal Zipf's Law (Slope -1)")
+
+  plt.title("Zipf's Law Analysis of Transliterated Text")
+  plt.xlabel("Rank (log scale)")
+  plt.ylabel("Frequency (log scale)")
+  plt.legend()
+  plt.grid(True, which="both", ls="-", alpha=0.5)
+
+  # Save the plot
+  plt.savefig("zipf_analysis.png")
+  # plt.show() # Uncomment if you want it to pop up
+  print("Zipf's law plot saved to zipf_analysis.png")
+
+if enableZipfsLawGeneration:
+  try:
+    plot_zipf_law(outputForWords)
+  except ImportError:
+    print("Matplotlib not installed; skipping Zipf plot.")
+
+
+### HTML Comparison of your output to the actual Voynich Manuscript ###
+# Generate the HTML file with a visual comparison
+def generate_html_report(original_text, transliterated_text):
+  # Split by lines
+  # Note: We replace your custom delimiters with standard newlines for display
+  orig_lines = original_text.replace(spaceDelimiter, " ").split("\n")
+  trans_lines = transliterated_text.replace(spaceDelimiter, " ").split("\n")
+
+  html_content = """
+  <html>
+  <head>
+      <style>
+          body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+          .container { display: flex; flex-direction: column; gap: 10px; }
+          .row { display: flex; background: white; border-bottom: 1px solid #ccc; padding: 10px; }
+          .trans { flex: 1; padding-right: 10px; border-right: 1px solid #eee; color: #333; }
+          .orig { flex: 1; padding-left: 10px; color: #0066cc; font-family: "Courier New", monospace; }
+          h1 { text-align: center; }
+
+          /* Optional: Add a web font for Voynich here if you have a .woff file */
+          /* @font-face { font-family: 'Voynich'; src: url('voynich.woff'); } */
+          /* .orig { font-family: 'Voynich'; } */
+      </style>
+  </head>
+  <body>
+      <h1>Voynich Transliteration Side-By-Side Comparison</h1>
+      <div class="container">
+          <div class="row" style="background:#ddd; font-weight:bold;">
+              <div class="trans">Transliteration (Target)</div>
+              <div class="orig">Original (Source)</div>
+          </div>
+  """
+
+  # Iterate through lines (zip stops at the shortest list)
+  for t_line, o_line in zip(trans_lines, orig_lines):
+      if not t_line.strip() and not o_line.strip():
+          continue # Skip empty lines
+
+      html_content += f"""
+          <div class="row">
+              <div class="trans">{t_line}</div>
+              <div class="orig">{o_line}</div>
+          </div>
+      """
+
+  html_content += """
+      </div>
+  </body>
+  </html>
+  """
+
+  with open("comparison.html", "w", encoding="utf-8") as f:
+      f.write(html_content)
+  print("HTML Report saved to comparison.html")
+
+if enableHTMLComparison:
+  generate_html_report(inputData, outputRaw)
+
 
 ### Translate ###
 # Print all possible languages in terminal is enabled
