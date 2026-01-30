@@ -7,7 +7,6 @@
 #
 # Note: The v101 transcription used does not include the v101 extended character set.
 
-
 ### Imports ###
 import math
 import os
@@ -15,18 +14,14 @@ import difflib
 from collections import Counter
 
 ### Setup ###
-# Delimiter and symbol configuration
-# Note: Recommended to keep delimiters and symbols as they are, as the default settings work specifically with the v101 transcription
-# Do not set spaceDelimiter and/or ambiguousSpaceDelimiter to "" as that will break certain parts of the code
 spaceDelimiter = "_"
 ambiguousSpaceDelimiter = "-"
-
 endOfWordMarker = "/"
 startOfWordMarker = "@"
 commentOutChar = ")"
 
 firstOccuranceMarker = "'"
-secondOccuranceMarker = "\"" # Note: Python requires you to have a \ before a " character because multiple " characters in a row mess up Python syntax
+secondOccuranceMarker = "\"" # Note: Python requires you to have a \ before a " character because more than two " characters in a row mess up Python syntax
 thirdOccuranceMarker = ":"
 fourthOccuranceMarker = ";"
 
@@ -45,7 +40,7 @@ useVoynichChars = False
 enableTranslation = False
 enablePrintLanguages = False
 
-# Corpus Analysis
+# --- FEATURE 5: CORPUS ANALYSIS ---
 enableCorpusAnalysis = False
 toleranceLevel = 3 # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant
 corpusReportPath = "discovery_report.txt"
@@ -53,7 +48,7 @@ referenceFolder = "reference_texts"
 fuzzyOutputPath = "output_fuzzy.txt"
 
 # File Paths
-mapPath = "j_mapping.txt"
+mapPath = "mapping.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
@@ -516,7 +511,7 @@ if enableTranslation:
       translateFile.write(translated + " ")
   except: print("Translator not installed.")
 
-### Corpus Analysis (Fuzzy Matching) ###
+### CORPUS ANALYSIS FUNCTION (Dynamic Strictness) ###
 def run_corpus_analysis(transliterated_text):
     print("\nStarting Corpus Analysis (The Combinator)...")
 
