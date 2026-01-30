@@ -46,7 +46,8 @@ enableTranslation = False
 enablePrintLanguages = False
 
 # Corpus Analysis
-enableCorpusAnalysis = False 
+enableCorpusAnalysis = False
+toleranceLevel = 3 # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant
 corpusReportPath = "discovery_report.txt"
 referenceFolder = "reference_texts"
 fuzzyOutputPath = "output_fuzzy.txt"
@@ -557,7 +558,7 @@ def run_corpus_analysis(transliterated_text):
     # DYNAMIC STRICTNESS FUNCTION
     def get_cutoff_for_word(word_len):
         if word_len <= 5: return 0.85 # Strict (Almost perfect match required)
-        return 0.75                   # Loose (Allows "multiple chars wrong")
+        return 0.75 - ((toleranceLevel - 3) * -5 / 100)
 
     # 4. Analysis Loop
     i = 0
