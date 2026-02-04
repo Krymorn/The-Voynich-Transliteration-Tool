@@ -4,7 +4,7 @@
 Create your own Voynich Manuscript transliteration based on the v101 transcription.
 
 ## Overview
-TVTT is a cryptographic workbench that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping. 
+TVTT is a cryptographic workbench that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping. 
 
 Beyond simple transliteration, the tool acts as a testing ground for decipherment theories. It performs **deep statistical verification**—including Zipf's Law analysis, Entropy calculation, and Sukhotin's vowel detection—to determine if your mapping behaves like a natural language or random noise. It also supports **Dialect Sectioning**, allowing you to isolate and test specific "languages" (e.g. Currier A vs. B) within the manuscript.
 
@@ -18,10 +18,10 @@ Beyond simple transliteration, the tool acts as a testing ground for deciphermen
   - **Word Merging:** Detects and fixes segmentation errors (e.g., merging "in" + "to" -> "into").
 - **Translation Module:** Attempt to automatically translate your output into English (via Google Translate) to check for intelligible sentences.
 - **Deep Statistical Analysis:**
-  - **Entropy Calculation:** Measures the randomness of your output.
-  - **Sukhotin Vowel Analysis:** Algorithmically predicts vowels based on character adjacency.
-  - **Reduplication Detection:** Verifies if your mapping preserves the manuscript's frequent word repetition (e.g., *chol chol*).
-  - **Zipf's Law Visualization:** Generates a log-log plot to compare your text's frequency distribution against natural language laws.
+  - **Entropy Calculation:** Measures the randomness of your output.
+  - **Sukhotin Vowel Analysis:** Algorithmically predicts vowels based on character adjacency.
+  - **Reduplication Detection:** Verifies if your mapping preserves the manuscript's frequent word repetition (e.g., *chol chol*).
+  - **Zipf's Law Visualization:** Generates a log-log plot to compare your text's frequency distribution against natural language laws.
 - **HTML Comparison Report:** Generates a side-by-side visual report (`comparison.html`) of the original text vs. your transliteration.
 
 ### Performance Warning: Fuzzy Matching
@@ -59,23 +59,24 @@ The **Corpus Analysis / Fuzzy Matching** feature is extremely computationally in
 - **No Symbol** — Provided mapping will be used if no positional rule matches.
 
 ### Instructions
-1.  **Install:** Download the source code from the latest release. Ensure you have Python installed.
-    * *Optional (But recommended):* Install dependencies for graphs/translation: `pip install matplotlib deep-translator numpy`
+1.  **Install:** Download the source code from the latest release. Ensure you have Python installed.
+    * *Optional (But recommended):* Install dependencies for graphs/translation: `pip install matplotlib deep-translator numpy`
     
-2.  **Configure:** Open `main.py` to adjust settings:
-    * **CRITICAL:** Set `endLine = 200` initially to test without waiting hours.
+2.  **Configure:** Open `main.py` to adjust settings:
+    * **CRITICAL:** Set `endLine = 200` initially to test without waiting hours.
     * Set `startLine` and `endLine` to test specific sections (e.g., 0-700 for Herbal Section) or leave `endline` as `None` to continue until the end of the input file.
-    * Toggle `enableCorpusAnalysis` to True if you want to use the fuzzy matcher.
-    * Toggle `enableHTMLComparison` or `enableZipfsLawGeneration` as needed.
-    * Set `enableTranslation = True` if you want to attempt Google Translate on your output.
+    * Toggle `enableCorpusAnalysis` to `True` if you want to use the fuzzy matcher. Adjust `toleranceLevel` (1-3) to control strictness (1 = lenient, 3 = strict).
+    * Toggle `enableHTMLComparison` or `enableZipfsLawGeneration` as needed.
+    * Set `enableTranslation = True` to attempt Google Translate. Change `translationLanguage` to your desired target (e.g., `'en'` for English).
+    * *Tip:* Toggle `enablePrintLanguages = True` to print a list of valid language codes to the console.
     
 3.  **Setup References:** If using Corpus Analysis, find a text file of a dictionary (e.g. `latin.txt`) and place it inside the `reference_texts` folder.
 
-4.  **Map:** Edit `mapping.txt` to define your substitution cipher.
+4.  **Map:** Edit `mapping.txt` to define your substitution cipher.
 
-5.  **Run:** Execute `main.py`. (Run `python main.py` in Terminal/Command Line)
+5.  **Run:** Execute `main.py`. (Run `python main.py` in Terminal/Command Line)
 
-6.  **Analyze:** Review `output.txt`, `output_fuzzy.txt`, `analysis.txt`, `zipf_analysis.png`, and `comparison.html`.
+6.  **Analyze:** Review `output.txt`, `output_fuzzy.txt`, `analysis.txt`, `zipf_analysis.png`, and `comparison.html`.
 
 ## Troubleshooting & FAQ
 
@@ -111,7 +112,7 @@ A: [Voynich.nu](https://www.voynich.nu/transcr.html) has excellent reference cha
 - Option to use EVA or an alternative transcription.
 
 ## Credits & Citations
-1.  **Voynich.nu** for the [v101 transcription](https://voynich.nu/data/voyn_101.txt).<br>
-2.  **ChatGPT** for assistance with word part analysis logic.<br>
-3.  **Google Gemini** for `cleaner.py`, statistical algorithms (Sukhotin/Zipf), and structural improvements.<br>
-4.  **deep-translator** Python library for the translation module.<br>
+1.  **Voynich.nu** for the [v101 transcription](https://voynich.nu/data/voyn_101.txt).<br>
+2.  **ChatGPT** for assistance with word part analysis logic.<br>
+3.  **Google Gemini** for `cleaner.py`, statistical algorithms (Sukhotin/Zipf), and structural improvements.<br>
+4.  **deep-translator** Python library for the translation module.<br>
