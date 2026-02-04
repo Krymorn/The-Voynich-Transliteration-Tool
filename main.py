@@ -29,7 +29,7 @@ translationLanguage = 'la' # Default translation language
 
 # Processing Limits
 startLine = 0
-endLine = 200  # Set to None for full text, or a number (e.g. 500) for testing
+endLine = None # Set to None for full text, or a number (e.g. 500) for testing
 
 # Features
 enableAnalysis = False
