@@ -29,19 +29,19 @@ translationLanguage = 'la' # Default translation language
 
 # Processing Limits
 startLine = 0
-endLine = None  # Set to None for full text, or a number (e.g. 500) for testing
+endLine = 200  # Set to None for full text, or a number (e.g. 500) for testing
 
 # Features
-enableAnalysis = False
-enableZipfsLawGeneration = False
+enableAnalysis = True
+enableZipfsLawGeneration = True
 enableZipfsReferenceLines = False
 enableHTMLComparison = False
 useVoynichChars = False
 enableTranslation = False
 enablePrintLanguages = False
 
-# --- FEATURE 5: CORPUS ANALYSIS ---
-enableCorpusAnalysis = False
+# Corpus Analysis
+enableCorpusAnalysis = True
 toleranceLevel = 3 # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant
 corpusReportPath = "discovery_report.txt"
 referenceFolder = "reference_texts"
@@ -55,7 +55,7 @@ outputNumberPath = "output_numbers.txt"
 analysisPath = "analysis.txt"
 translatePath = "translated.txt"
 
-# Read input
+# Read Input
 with open(inputPath, "r") as inputFile:
   all_lines = inputFile.readlines()
   if endLine is None:
@@ -68,7 +68,7 @@ with open(inputPath, "r") as inputFile:
   inputData = inputData.replace(".", spaceDelimiter)
   inputData = inputData.replace(",", ambiguousSpaceDelimiter)
 
-# Read mapping
+# Read Mapping
 with open(mapPath, "r") as inputMapFile:
   inputMapData = inputMapFile.read()
 
