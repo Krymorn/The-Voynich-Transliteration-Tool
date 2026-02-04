@@ -32,8 +32,8 @@ startLine = 0
 endLine = 200  # Set to None for full text, or a number (e.g. 500) for testing
 
 # Features
-enableAnalysis = True
-enableZipfsLawGeneration = True
+enableAnalysis = False
+enableZipfsLawGeneration = False
 enableZipfsReferenceLines = False
 enableHTMLComparison = False
 useVoynichChars = False
@@ -41,7 +41,7 @@ enableTranslation = False
 enablePrintLanguages = False
 
 # Corpus Analysis
-enableCorpusAnalysis = True
+enableCorpusAnalysis = False
 toleranceLevel = 3 # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant
 corpusReportPath = "discovery_report.txt"
 referenceFolder = "reference_texts"
