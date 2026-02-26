@@ -37,14 +37,12 @@ Use the label:
 If you find parts of the documentation confusing or incomplete, you can:
 
 - Open an issue describing what should be changed
-<br>**or**
-- Submit a pull request with corrected wording
 
 Improving clarity in `README.md`, comments, or instructions is incredibly helpful.
 
 ## Code Contributions
 
-Currently this project is managed by a single author. Possibly, in the future, the project may be opened to code contributions but for now it is not.
+Currently this project is managed by a single author. Possibly, in the future, the project may be opened to code contributions but for now it is not. There is no plan at this time to make contibutions avalible.
 
 **For future refernce:**
 
