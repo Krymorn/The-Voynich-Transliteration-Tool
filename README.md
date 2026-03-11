@@ -1,5 +1,5 @@
 # The Voynich Transliteration Tool (TVTT)
-**Version 1.6.2**
+**Version 1.6.3**
 
 Create your own Voynich Manuscript transliteration based on the v101 transcription.
 
@@ -106,9 +106,6 @@ A: Natural languages follow a specific slope where the most common word is twice
 A: [Voynich.nu](https://www.voynich.nu/transcr.html) has excellent reference charts.
 
 ## Planned Features
-- Batch processing of multiple texts for comparison.
-- Morphological decomposition tools.
-- Multi-language dictionary assisted mapping suggestions.
 - Option to use EVA or an alternative transcription.
 
 ## Credits & Citations
