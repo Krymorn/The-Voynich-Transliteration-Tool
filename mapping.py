@@ -1,5 +1,5 @@
 # Input and map file paths
-# Change to "v101_cleaned.txt" and "v101_mapping.txt" if you want.
+# Change to "v101_cleaned.txt" and "v101_mapping.txt" if you would like.
 v101FilePath = "eva_cleaned.txt"
 mapFilePath = "eva_mapping.txt"
 
