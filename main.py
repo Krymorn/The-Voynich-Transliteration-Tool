@@ -12,6 +12,7 @@ import math
 import os
 import difflib
 from collections import Counter
+from functools import lru_cache
 
 ### Setup ###
 spaceDelimiter = "_"
@@ -20,7 +21,7 @@ endOfWordMarker = "/"
 startOfWordMarker = "@"
 commentOutChar = ")"
 
-firstOccuranceMarker = "'"
+firstOccuranceMarker = "\'"
 secondOccuranceMarker = "\""  # Note: Python requires you to have a \ before a " character because multiple " characters in a row mess up Python syntax
 thirdOccuranceMarker = ":"
 fourthOccuranceMarker = ";"
@@ -30,10 +31,10 @@ translationLanguage = 'la'  # Default translation language
 
 # Processing Limits
 startLine = 0
-endLine = None  # Set to None for full text, or a number (e.g. 200) for testing
+endLine = 200  # Set to None for full text, or a number (e.g. 200) for testing
 
 # Features
-enableAnalysis = False
+enableAnalysis = True
 enableZipfsLawGeneration = False
 enableZipfsReferenceLines = False
 enableHTMLComparison = False
@@ -42,15 +43,15 @@ enableTranslation = False
 enablePrintLanguages = False
 
 # Corpus Analysis
-enableFuzzyMatching = False
+enableFuzzyMatching = True
 toleranceLevel = 2  # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant (most strict)
 corpusReportPath = "discovery_report.txt"
 referenceFolder = "reference_texts"
 fuzzyOutputPath = "output_fuzzy.txt"
 
 # File Paths
-mapPath = "mapping.txt"
-inputPath = "v101_cleaned.txt"
+mapPath = "j_mapping.txt"
+inputPath = "eva_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
 analysisPath = "analysis.txt"
@@ -276,7 +277,8 @@ def getNum(inputChar, index, data, occurrence):
 
 
 ### Main Transliteration Loop ###
-outputNumberFile.write(".")
+output_chars_list = []
+output_nums_list = ["."]
 i = 0
 word_char_counts = {}
 
@@ -284,15 +286,15 @@ while i < len(inputData):
   ch = inputData[i]
 
   if ch == "\n":
-    outputNumberFile.write("\n.")
-    outputFile.write("\n")
+    output_nums_list.append("\n.")
+    output_chars_list.append("\n")
     word_char_counts.clear()
     i += 1
     continue
 
   if ch in [spaceDelimiter, ambiguousSpaceDelimiter]:
-    outputNumberFile.write(ch + ".")
-    outputFile.write(ch)
+    output_nums_list.append(ch + ".")
+    output_chars_list.append(ch)
     word_char_counts.clear()
     i += 1
     continue
@@ -321,13 +323,15 @@ while i < len(inputData):
   encoded = getNum(match_str, i, inputData, current_occurrence)
   decoded = getChar(encoded, i, inputData, match_len, current_occurrence)
 
-  outputNumberFile.write(encoded + ".")
-  outputFile.write(decoded)
+  output_nums_list.append(encoded + ".")
+  output_chars_list.append(decoded)
   i += match_len
 
+outputRaw = "".join(output_chars_list)
+outputFile.write(outputRaw)
 outputFile.close()
-outputFile = open(outputPath, "r")
-outputRaw = outputFile.read()
+
+outputNumberFile.write("".join(output_nums_list))
 outputClean = outputRaw.replace(spaceDelimiter, "").replace(ambiguousSpaceDelimiter, "")#.replace("\n", "")
 outputForWords = outputRaw.replace(spaceDelimiter, " ").replace(ambiguousSpaceDelimiter, " ")#.replace("\n", " ")
 analysisFile = open(analysisPath, "w")
@@ -466,7 +470,9 @@ if enableAnalysis:
   analyze_word_parts()
   analyze_reduplication(outputRaw)
   sukhotin_vowel_analysis(outputClean)
-
+  analysisFile.flush()
+  print("Finished Analysis.")
+  
 
 ### Graph Zipf's Law ###
 def plot_zipf_law(text):
@@ -542,6 +548,7 @@ def generate_html_report(original_text, transliterated_text):
 
 if enableHTMLComparison:
   generate_html_report(inputData, outputRaw)
+  print("Saved HTML file.")
 
 ### Translation ###
 if enablePrintLanguages:
@@ -565,11 +572,13 @@ if enableTranslation:
       translated = GoogleTranslator(
           source='la', target=translationLanguage).translate(text=chunk_clean)
       translateFile.write(translated + " ")
+    print("Translated output.")
   except:
     print("Translator not installed.")
 
 
 ### Corpus Analysis (Levenshtein Distance) ###
+@lru_cache(maxsize=None)
 def levenshtein_distance(s1, s2):
     """Calculates the minimum number of edits required to change s1 into s2."""
     if len(s1) < len(s2):
@@ -608,7 +617,7 @@ def get_best_levenshtein_match(word, dictionary, max_edits):
 
     return best_match
 
-### Corpus Analysis (Optimized Segmentation) ###
+### Corpus Analysis ###
 def run_corpus_analysis(transliterated_text):
     print("\nStarting Corpus Analysis...")
 
@@ -620,25 +629,41 @@ def run_corpus_analysis(transliterated_text):
 
     # 2. Build Dictionary
     known_words = set()
+
+    if not os.path.exists(referenceFolder):
+        print(f"\n[!] ERROR: The folder '{referenceFolder}' does not exist.")
+        print("[!] Please create it and add reference .txt files. Skipping Corpus Analysis.\n")
+        return
+
     reference_files = [f for f in os.listdir(referenceFolder) if f.endswith('.txt')]
+
+    if not reference_files:
+        print(f"\n[!] ERROR: No .txt files found in the '{referenceFolder}' folder.")
+        print("[!] The dictionary is empty. Skipping Corpus Analysis.\n")
+        return
+
+    remove_punct_map = str.maketrans('.,;:!?()"[]{}', '             ')
+
     for filename in reference_files:
         with open(os.path.join(referenceFolder, filename), 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read().lower()
-            for char in '.,;:!?()"[]{}': content = content.replace(char, ' ')
+            content = f.read().lower().translate(remove_punct_map)
             known_words.update(content.split())
 
-    if not known_words: return
+    if not known_words: 
+        print("\n[!] ERROR: Reference texts were empty. Skipping Corpus Analysis.\n")
+        return
+
+    known_words_seq = tuple(known_words)
 
     findings_segmentation = []
     findings_fuzzy = []
     corrected_text_list = []
     match_cache = {}
+    merge_cache = {}
 
     # 3. Validation Logic
     def is_valid_merge(original, match):
         """Ensures the merge isn't just a wild guess."""
-        # The match must contain most of the characters from the original pieces
-        # This prevents 'er'+'e' becoming 'vere' if 'e' is too small to justify 'v'
         common = Counter(original) & Counter(match)
         overlap = sum(common.values())
         return (overlap / len(match)) >= 0.80 
@@ -667,10 +692,10 @@ def run_corpus_analysis(transliterated_text):
             best_match = match_cache[w1]
         elif len(w1) >= 3:
             cutoff = 0.65 + (toleranceLevel * 0.05)
-            matches = difflib.get_close_matches(w1, known_words, n=1, cutoff=cutoff)
+            # OPTIMIZATION: Pass known_words_seq instead of the set
+            matches = difflib.get_close_matches(w1, known_words_seq, n=1, cutoff=cutoff)
             if matches:
                 best_match = matches[0]
-                # Calculate Score
                 score = round(difflib.SequenceMatcher(None, w1, best_match).ratio() * 100)
                 findings_fuzzy.append(f"Word '{w1}' -> '{best_match}' ({score}%)")
             match_cache[w1] = best_match
@@ -684,17 +709,32 @@ def run_corpus_analysis(transliterated_text):
         if i + 1 < total_words:
             m2_cand = w1 + trans_words[i+1]
             if len(m2_cand) >= 4:
-                m_cutoff = min(0.85, 0.70 + (toleranceLevel * 0.05))
-                m_matches = difflib.get_close_matches(m2_cand, known_words, n=1, cutoff=m_cutoff)
-                if m_matches:
-                    res = m_matches[0]
-                    if is_valid_merge(m2_cand, res):
-                        score = round(difflib.SequenceMatcher(None, m2_cand, res).ratio() * 100)
+                # OPTIMIZATION: Check merge cache
+                if m2_cand in merge_cache:
+                    res, score = merge_cache[m2_cand]
+                    if res:
                         findings_segmentation.append(f"Merge '{w1}'+'{trans_words[i+1]}' -> '{res}' (Fuzzy {score}%)")
                         corrected_text_list.append(res)
                         i += 2
                         continue
+                else:
+                    m_cutoff = min(0.85, 0.70 + (toleranceLevel * 0.05))
+                    # OPTIMIZATION: Pass known_words_seq instead of the set
+                    m_matches = difflib.get_close_matches(m2_cand, known_words_seq, n=1, cutoff=m_cutoff)
+                    if m_matches:
+                        res = m_matches[0]
+                        if is_valid_merge(m2_cand, res):
+                            score = round(difflib.SequenceMatcher(None, m2_cand, res).ratio() * 100)
+                            merge_cache[m2_cand] = (res, score)
+                            findings_segmentation.append(f"Merge '{w1}'+'{trans_words[i+1]}' -> '{res}' (Fuzzy {score}%)")
+                            corrected_text_list.append(res)
+                            i += 2
+                            continue
 
+                    # Cache the failure so we don't try this bad merge again
+                    merge_cache[m2_cand] = (None, 0)
+
+        # INFINITE LOOP FIX RESTORED:
         corrected_text_list.append(w1)
         i += 1
 
@@ -707,7 +747,7 @@ def run_corpus_analysis(transliterated_text):
     with open(fuzzyOutputPath, "w", encoding="utf-8") as f:
         f.write(" ".join(corrected_text_list))
 
-    print(f"Analysis Complete.")
+    print("Analysis Complete.")
     print(f"Report: {corpusReportPath}")
     print(f"Fuzzy Text Output: {fuzzyOutputPath}")
 

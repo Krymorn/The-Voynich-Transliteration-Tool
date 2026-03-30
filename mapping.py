@@ -1,6 +1,6 @@
 # Input and map file paths
-v101FilePath = "v101_cleaned.txt"
-mapFilePath = "mapping.txt"
+v101FilePath = "eva_cleaned.txt"
+mapFilePath = "eva_mapping.txt"
 
 # Setup foundChars array
 foundChars = []
