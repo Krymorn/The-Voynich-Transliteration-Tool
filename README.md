@@ -1,5 +1,5 @@
 # The Voynich Transliteration Tool (TVTT)
-**Version 1.6.3**
+**Version 1.7.1**
 
 Create your own Voynich Manuscript transliteration based on the v101 transcription.
 
@@ -28,30 +28,29 @@ Beyond simple transliteration, the tool acts as a testing ground for deciphermen
 **Please Read Before Running:**
 The **Corpus Analysis / Fuzzy Matching** feature is extremely computationally intensive. It compares every word in the manuscript (approx. 35,000 words) against every word in your reference dictionary using complex similarity algorithms.
 
-* **The Cost:** Running the full manuscript against a large dictionary can take **hours**.
-* **The Solution:** Do not run the full text immediately. Open `main.py` and set the `endLine` variable to a small number (e.g., `endLine = 200`) to test your settings on a small chunk first. 
-* **To run the full text:** Only set `endLine = None` when you are satisfied with your settings and ready to wait.
+* **Time:** Running the full manuscript against a large dictionary can take **several minutes**.
+* **Testing:** As a test, do not run the full text immediately. Open `main.py` and set the `endLine` variable to a small number (e.g., `endLine = 200`) to test your settings on a small chunk first. 
+* **Full text:** Only set `endLine = None` when you are satisfied with your settings and ready to wait.
 
 ## Tutorial
 
 ### File Structure
-- `cleaner.py`: Cleans the raw `v101.txt` and saves it to `v101_cleaned.txt`.
-- `mapping.py`: Scans the cleaned text to auto-populate `mapping.txt` with all unique characters found.
-- `mapping.txt`: The core configuration file where you define your substitution rules.
-- `main.py`: Reads `mapping.txt`, processes the text, and generates all outputs.
+- `cleaner.py`: Cleans the raw `v101.txt` and saves it to `v101_cleaned.txt`/`eva_cleaned.txt`.
+- `mapping.py`: Scans the cleaned text to auto-populate `v101_mapping.txt`/`eva_mapping.txt` with all unique characters found.
+- `v101_mapping.txt`/`eva_mapping.txt`: The core configuration file where you define your substitution rules.
+- `main.py`: Reads `v101_mapping.txt`/`eva_mapping.txt`, processes the text, and generates all outputs.
 - `reference_texts/`: A folder where you place `.txt` dictionaries (e.g. `latin.txt`) for the fuzzy matcher to use.
-- `output.txt`: The final transliterated text (uses underscores `_` for spaces).
+- `output.txt`: The final transliterated text (uses underscores `_` for spaces and hyphens `-` for ambigous spaces).
 - `output_fuzzy.txt`: The transliterated text **after** being auto-corrected by the Corpus Analysis.
 - `discovery_report.txt`: A report listing every word merge and typo correction found by the system.
-- `output_numbers.txt`: A debug file showing the numerical IDs used during processing.
 - `analysis.txt`: Statistical data (Frequency, Entropy, Affixes, Vowel predictions, Reduplication).
 - `zipf_analysis.png`: A graph visualizing word frequency.
 - `comparison.html`: A visual report comparing source vs. output line-by-line.
 - `translated.txt`: (Optional) The machine-translated version of your output.
 
-**NOTE:** Do not edit `v101.txt` or `v101_cleaned.txt` manually.
+**NOTE:** Do not edit `v101.txt`/`eva.txt` or `v101_cleaned.txt`/`eva_cleaned.txt` manually.
 
-### Syntax for `mapping.txt`
+### Syntax for `v101_mapping.txt`/`eva_mapping.txt`
 - **`@`** — End of line: Use this mapping only if the character is at the **start** of a word (e.g., `56=9~s@`).
 - **`/`** — End of line: Use this mapping only if the character is at the **end** of a word (e.g., `57=9~us/`).
 - **`'`**, **`"`**, **`:`**, **`;`** — Use these for the 1st, 2nd, 3rd, and 4th **occurrence** of a character within a single word.
@@ -63,16 +62,16 @@ The **Corpus Analysis / Fuzzy Matching** feature is extremely computationally in
     * *Optional (But recommended):* Install dependencies for graphs/translation: `pip install matplotlib deep-translator numpy`
     
 2.  **Configure:** Open `main.py` to adjust settings:
-    * **CRITICAL:** Set `endLine = 200` initially to test without waiting hours.
-    * Set `startLine` and `endLine` to test specific sections (e.g., 0-700 for Herbal Section) or leave `endline` as `None` to continue until the end of the input file.
-    * Toggle `enableCorpusAnalysis` to `True` if you want to use the fuzzy matcher. Adjust `toleranceLevel` (1-3) to control strictness (1 = lenient, 3 = strict).
+    * **Testing:** Set `endLine = 200` initially to test immediately.
+    * Set `startLine` and `endLine` to test specific sections (e.g., 0-700 for Herbal Section) or leave `endLine` as `None` to continue until the end of the input file.
+    * Toggle `enableFuzzyMatching` to `True` if you want to use the fuzzy matcher. Adjust `toleranceLevel` (1-3) to control strictness (1 = lenient, 3 = strict).
     * Toggle `enableHTMLComparison` or `enableZipfsLawGeneration` as needed.
     * Set `enableTranslation = True` to attempt Google Translate. Change `translationLanguage` to your desired target (e.g., `'en'` for English).
     * *Tip:* Toggle `enablePrintLanguages = True` to print a list of valid language codes to the console.
     
 3.  **Setup References:** If using Corpus Analysis, find a text file of a dictionary (e.g. `latin.txt`) and place it inside the `reference_texts` folder.
 
-4.  **Map:** Edit `mapping.txt` to define your substitution cipher.
+4.  **Map:** Edit `v101_mapping.txt`/`eva_mapping.txt` to define your substitution cipher.
 
 5.  **Run:** Execute `main.py`. (Run `python main.py` in Terminal/Command Line)
 
@@ -86,7 +85,7 @@ The **Corpus Analysis / Fuzzy Matching** feature is extremely computationally in
 
 **Q: Can I map multiple input characters to a single letter?**
 A: Yes. The tool supports multi-character inputs (n-graphs).
-* *Example:* `101=4o~d` (This tells the tool to treat every instance of the sequence "4o" as the letter "d").
+* *Example:* `105=4o~d` (This tells the tool to treat every instance of the sequence "4o" as the letter "d").
 * The tool prioritizes the longest matches first, so if you have mappings for both `4` and `4o`, it will correctly identify `4o` as a single unit before falling back to `4`.
 
 **Q: Can I map one Voynich character to multiple letters?**
@@ -102,7 +101,7 @@ A: The Voynich manuscript features frequent immediate repetition (e.g., *chol ch
 **Q: What does the Zipf's Law graph show?**
 A: Natural languages follow a specific slope where the most common word is twice as frequent as the second, etc. If the "Ideal" line and your "Data" points are wildly different, your output may be gibberish rather than language.
 
-**Q: Where can I get a v101 transliteration reference?**
+**Q: Where can I get v101 and EVA transliteration reference?**
 A: [Voynich.nu](https://www.voynich.nu/transcr.html) has excellent reference charts.
 
 ## Planned Features
