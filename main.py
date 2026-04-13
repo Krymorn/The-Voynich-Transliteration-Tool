@@ -50,7 +50,7 @@ referenceFolder = "reference_texts"
 fuzzyOutputPath = "output_fuzzy.txt"
 
 # File Paths
-mapPath = "j_mapping_optimized.txt"
+mapPath = "v101_mapping.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 analysisPath = "analysis.txt"
