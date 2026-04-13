@@ -4,7 +4,7 @@
 Create your own Voynich Manuscript transliteration based on the v101/EVA transcriptions.
 
 ## Overview
-TVTT is a cryptographic workbench that replaces each character in the v101/EVA transcription of the Voynich Manuscript with a customizable, user-defined mapping. 
+TVTT is a cryptographic workbench that replaces each character in the v101/EVA transcriptions of the Voynich Manuscript with a customizable, user-defined mapping. 
 
 Beyond simple transliteration, the tool acts as a testing ground for decipherment theories. It performs **deep statistical verification**—including Zipf's Law analysis, Entropy calculation, and Sukhotin's vowel detection—to determine if your mapping behaves like a natural language or random noise. It also supports **Dialect Sectioning**, allowing you to isolate and test specific "languages" (e.g. Currier A vs. B) within the manuscript.
 
