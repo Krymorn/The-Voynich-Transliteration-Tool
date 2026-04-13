@@ -1,6 +1,6 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.6.3
+# Version: 1.7.0
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # Read the README.md file for a full explanation of all features.
@@ -21,7 +21,7 @@ endOfWordMarker = "/"
 startOfWordMarker = "@"
 commentOutChar = ")"
 
-firstOccuranceMarker = "\'"
+firstOccuranceMarker = "'"
 secondOccuranceMarker = "\""  # Note: Python requires you to have a \ before a " character because multiple " characters in a row mess up Python syntax
 thirdOccuranceMarker = ":"
 fourthOccuranceMarker = ";"
@@ -31,10 +31,10 @@ translationLanguage = 'la'  # Default translation language
 
 # Processing Limits
 startLine = 0
-endLine = 200  # Set to None for full text, or a number (e.g. 200) for testing
+endLine = None  # Set to None for full text, or a number (e.g. 200) for testing
 
 # Features
-enableAnalysis = True
+enableAnalysis = False
 enableZipfsLawGeneration = False
 enableZipfsReferenceLines = False
 enableHTMLComparison = False
@@ -43,22 +43,22 @@ enableTranslation = False
 enablePrintLanguages = False
 
 # Corpus Analysis
-enableFuzzyMatching = True
+enableFuzzyMatching = False
 toleranceLevel = 2  # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant (most strict)
 corpusReportPath = "discovery_report.txt"
 referenceFolder = "reference_texts"
 fuzzyOutputPath = "output_fuzzy.txt"
 
 # File Paths
-mapPath = "j_mapping.txt"
-inputPath = "eva_cleaned.txt"
+mapPath = "v101_mapping.txt"
+inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
 outputNumberPath = "output_numbers.txt"
 analysisPath = "analysis.txt"
 translatePath = "translated.txt"
 
 # Read Input
-with open(inputPath, "r") as inputFile:
+with open(inputPath, "r", encoding="utf-8") as inputFile:
   all_lines = inputFile.readlines()
   if endLine is None:
     selected_lines = all_lines[startLine:]
@@ -71,10 +71,6 @@ with open(inputPath, "r") as inputFile:
   inputData = "".join(selected_lines)
   inputData = inputData.replace(".", spaceDelimiter)
   inputData = inputData.replace(",", ambiguousSpaceDelimiter)
-
-# Read Mapping
-with open(mapPath, "r") as inputMapFile:
-  inputMapData = inputMapFile.read()
 
 # Outputs
 outputFile = open(outputPath, "w")
@@ -123,7 +119,7 @@ is_second = False
 is_third = False
 is_fourth = False
 
-with open(mapPath, "r") as mapFile:
+with open(mapPath, "r", encoding="utf-8") as mapFile:
   for line in mapFile:
     line = line.strip()
     is_initial = False
@@ -564,7 +560,7 @@ if enableTranslation:
     translateFile = open(translatePath, "w")
     translateFile.close()
     translateFile = open(translatePath, "a")
-    chunk_size = 4500
+    chunk_size = 4900
     for i in range(0, len(outputRaw), chunk_size):
       chunk = outputRaw[i:i + chunk_size]
       chunk_clean = chunk.replace(spaceDelimiter,
@@ -622,8 +618,7 @@ def run_corpus_analysis(transliterated_text):
     print("\nStarting Corpus Analysis...")
 
     # 1. Setup
-    clean_text = transliterated_text.replace(spaceDelimiter, " ").replace(
-        ambiguousSpaceDelimiter, " ").replace("\n", " ").lower()
+    clean_text = transliterated_text.replace(spaceDelimiter, " ").replace(ambiguousSpaceDelimiter, " ").lower()
     trans_words = clean_text.split()
     total_words = len(trans_words)
 
@@ -645,7 +640,7 @@ def run_corpus_analysis(transliterated_text):
     remove_punct_map = str.maketrans('.,;:!?()"[]{}', '             ')
 
     for filename in reference_files:
-        with open(os.path.join(referenceFolder, filename), 'r', encoding='utf-8', errors='ignore') as f:
+        with open(os.path.join(referenceFolder, filename), "r", encoding="utf-8", errors='ignore') as f:
             content = f.read().lower().translate(remove_punct_map)
             known_words.update(content.split())
 
