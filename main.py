@@ -2,7 +2,7 @@
 # By: Krymorn (cmarbel)
 # Version: 1.7.1
 #
-# A tool for remapping the v101 transcription of the voynich manuscript.
+# A tool for remapping the v101/EVA transcriptions of the voynich manuscript.
 # Read the README.md file for a full explanation of all features.
 #
 # Note: The v101 transcription used does not include the v101 extended character set.
