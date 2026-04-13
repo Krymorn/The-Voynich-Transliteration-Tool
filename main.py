@@ -43,7 +43,7 @@ enableTranslation = False
 enablePrintLanguages = False
 
 # Corpus Analysis
-enableFuzzyMatching = True
+enableFuzzyMatching = False
 toleranceLevel = 2  # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant (most strict)
 corpusReportPath = "discovery_report.txt"
 referenceFolder = "reference_texts"
