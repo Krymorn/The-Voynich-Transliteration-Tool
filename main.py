@@ -50,8 +50,8 @@ referenceFolder = "reference_texts"
 fuzzyOutputPath = "output_fuzzy.txt"
 
 # File Paths
-mapPath = "v101_mapping.txt"
-inputPath = "v101_cleaned.txt"
+mapPath = "v101_mapping.txt"  # Can be changed to "eva_mapping.txt"
+inputPath = "v101_cleaned.txt"  # Can be changed to "eva_cleaned.txt"
 outputPath = "output.txt"
 analysisPath = "analysis.txt"
 translatePath = "translated.txt"
