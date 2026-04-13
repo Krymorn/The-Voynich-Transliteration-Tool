@@ -1,10 +1,10 @@
 # The Voynich Transliteration Tool (TVTT)
 **Version 1.7.1**
 
-Create your own Voynich Manuscript transliteration based on the v101 transcription.
+Create your own Voynich Manuscript transliteration based on the v101/EVA transcriptions.
 
 ## Overview
-TVTT is a cryptographic workbench that replaces each character in the v101 transcription of the Voynich Manuscript with a customizable, user-defined mapping. 
+TVTT is a cryptographic workbench that replaces each character in the v101/EVA transcription of the Voynich Manuscript with a customizable, user-defined mapping. 
 
 Beyond simple transliteration, the tool acts as a testing ground for decipherment theories. It performs **deep statistical verification**—including Zipf's Law analysis, Entropy calculation, and Sukhotin's vowel detection—to determine if your mapping behaves like a natural language or random noise. It also supports **Dialect Sectioning**, allowing you to isolate and test specific "languages" (e.g. Currier A vs. B) within the manuscript.
 
@@ -101,14 +101,14 @@ A: The Voynich manuscript features frequent immediate repetition (e.g., *chol ch
 **Q: What does the Zipf's Law graph show?**
 A: Natural languages follow a specific slope where the most common word is twice as frequent as the second, etc. If the "Ideal" line and your "Data" points are wildly different, your output may be gibberish rather than language.
 
-**Q: Where can I get v101 and EVA transliteration reference?**
+**Q: Where can I get v101 and EVA transliteration references?**
 A: [Voynich.nu](https://www.voynich.nu/transcr.html) has excellent reference charts.
 
 ## Planned Features
 - Option to use EVA or an alternative transcription.
 
 ## Credits & Citations
-1.  **Voynich.nu** for the [v101 transcription](https://voynich.nu/data/voyn_101.txt).<br>
+1.  **Voynich.nu** for the [v101/EVA transcriptions](https://voynich.nu/data/voyn_101.txt).<br>
 2.  **ChatGPT** for assistance with word part analysis logic.<br>
 3.  **Google Gemini** for `cleaner.py`, statistical algorithms (Sukhotin/Zipf), and structural improvements.<br>
 4.  **deep-translator** Python library for the translation module.<br>
