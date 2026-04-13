@@ -1,6 +1,6 @@
 # The Voynich Transliteration Tool
 # By: Krymorn (cmarbel)
-# Version: 1.7.0
+# Version: 1.7.1
 #
 # A tool for remapping the v101 transcription of the voynich manuscript.
 # Read the README.md file for a full explanation of all features.
@@ -43,17 +43,16 @@ enableTranslation = False
 enablePrintLanguages = False
 
 # Corpus Analysis
-enableFuzzyMatching = False
+enableFuzzyMatching = True
 toleranceLevel = 2  # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant (most strict)
 corpusReportPath = "discovery_report.txt"
 referenceFolder = "reference_texts"
 fuzzyOutputPath = "output_fuzzy.txt"
 
 # File Paths
-mapPath = "v101_mapping.txt"
+mapPath = "j_mapping_optimized.txt"
 inputPath = "v101_cleaned.txt"
 outputPath = "output.txt"
-outputNumberPath = "output_numbers.txt"
 analysisPath = "analysis.txt"
 translatePath = "translated.txt"
 
@@ -74,7 +73,6 @@ with open(inputPath, "r", encoding="utf-8") as inputFile:
 
 # Outputs
 outputFile = open(outputPath, "w")
-outputNumberFile = open(outputNumberPath, "w")
 
 # Dictionaries
 num_to_char_normal = {}
@@ -327,7 +325,6 @@ outputRaw = "".join(output_chars_list)
 outputFile.write(outputRaw)
 outputFile.close()
 
-outputNumberFile.write("".join(output_nums_list))
 outputClean = outputRaw.replace(spaceDelimiter, "").replace(ambiguousSpaceDelimiter, "")#.replace("\n", "")
 outputForWords = outputRaw.replace(spaceDelimiter, " ").replace(ambiguousSpaceDelimiter, " ")#.replace("\n", " ")
 analysisFile = open(analysisPath, "w")
@@ -414,7 +411,7 @@ def frequency():
   for char in set(outputClean):
     if char != "\n":
       freq[char] = outputClean.count(char)
-  freq_sorted = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+  freq_sorted = sorted(freq.items(), key=lambda x: x, reverse=True)
   analysisFile.write("Character Frequency:\n")
   for char, count in freq_sorted:
     if char != "\n":
@@ -468,7 +465,7 @@ if enableAnalysis:
   sukhotin_vowel_analysis(outputClean)
   analysisFile.flush()
   print("Finished Analysis.")
-  
+
 
 ### Graph Zipf's Law ###
 def plot_zipf_law(text):
@@ -490,7 +487,7 @@ def plot_zipf_law(text):
                alpha=0.7,
                markersize=8,
                label="Transliteration")
-    c = frequencies[0]
+    c = frequencies
     references = [("Modern English", 1.00, "grey", "--"),
                   ("Middle High German", 1.03, "green", ":"),
                   ("Old French/Italian", 1.06, "orange", "-."),
@@ -690,7 +687,7 @@ def run_corpus_analysis(transliterated_text):
             # OPTIMIZATION: Pass known_words_seq instead of the set
             matches = difflib.get_close_matches(w1, known_words_seq, n=1, cutoff=cutoff)
             if matches:
-                best_match = matches[0]
+                best_match = matches
                 score = round(difflib.SequenceMatcher(None, w1, best_match).ratio() * 100)
                 findings_fuzzy.append(f"Word '{w1}' -> '{best_match}' ({score}%)")
             match_cache[w1] = best_match
@@ -717,7 +714,7 @@ def run_corpus_analysis(transliterated_text):
                     # OPTIMIZATION: Pass known_words_seq instead of the set
                     m_matches = difflib.get_close_matches(m2_cand, known_words_seq, n=1, cutoff=m_cutoff)
                     if m_matches:
-                        res = m_matches[0]
+                        res = m_matches
                         if is_valid_merge(m2_cand, res):
                             score = round(difflib.SequenceMatcher(None, m2_cand, res).ratio() * 100)
                             merge_cache[m2_cand] = (res, score)
@@ -750,6 +747,5 @@ if enableFuzzyMatching:
   run_corpus_analysis(outputRaw)
 
 ### Closing ###
-outputNumberFile.close()
 outputFile.close()
 analysisFile.close()
