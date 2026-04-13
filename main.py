@@ -687,7 +687,7 @@ def run_corpus_analysis(transliterated_text):
             # OPTIMIZATION: Pass known_words_seq instead of the set
             matches = difflib.get_close_matches(w1, known_words_seq, n=1, cutoff=cutoff)
             if matches:
-                best_match = matches
+                best_match = matches[0]
                 score = round(difflib.SequenceMatcher(None, w1, best_match).ratio() * 100)
                 findings_fuzzy.append(f"Word '{w1}' -> '{best_match}' ({score}%)")
             match_cache[w1] = best_match
@@ -714,7 +714,7 @@ def run_corpus_analysis(transliterated_text):
                     # OPTIMIZATION: Pass known_words_seq instead of the set
                     m_matches = difflib.get_close_matches(m2_cand, known_words_seq, n=1, cutoff=m_cutoff)
                     if m_matches:
-                        res = m_matches
+                        res = m_matches[0]
                         if is_valid_merge(m2_cand, res):
                             score = round(difflib.SequenceMatcher(None, m2_cand, res).ratio() * 100)
                             merge_cache[m2_cand] = (res, score)
