@@ -1,11 +1,9 @@
 # The Voynich Transliteration Tool
-# By: Krymorn (cmarbel)
-# Version: 1.7.1
+# By: Krymorn (cmarbel on voynich.ninja)
+# Version: 1.8.0
 #
 # A tool for remapping the v101/EVA transcriptions of the voynich manuscript.
 # Read the README.md file for a full explanation of all features.
-#
-# Note: The v101 transcription used does not include the v101 extended character set.
 
 ### Imports ###
 import math
@@ -13,66 +11,38 @@ import os
 import difflib
 from collections import Counter
 from functools import lru_cache
+import json
 
-### Setup ###
-spaceDelimiter = "_"
-ambiguousSpaceDelimiter = "-"
-endOfWordMarker = "/"
-startOfWordMarker = "@"
-commentOutChar = ")"
+config = None
 
-firstOccuranceMarker = "'"
-secondOccuranceMarker = "\""  # Note: Python requires you to have a \ before a " character because multiple " characters in a row mess up Python syntax
-thirdOccuranceMarker = ":"
-fourthOccuranceMarker = ";"
-
-# Translation Language
-translationLanguage = 'la'  # Default translation language
-
-# Processing Limits
-startLine = 0
-endLine = None  # Set to None for full text, or a number (e.g. 200) for testing
-
-# Features
-enableAnalysis = False
-enableZipfsLawGeneration = False
-enableZipfsReferenceLines = False
-enableHTMLComparison = False
-useVoynichChars = False
-enableTranslation = False
-enablePrintLanguages = False
-
-# Corpus Analysis
-enableFuzzyMatching = False
-toleranceLevel = 2  # Options of 1/2/3, 1 being most tolerant of variations of words from the reference corpus and 3 being the least tolerant (most strict)
-corpusReportPath = "discovery_report.txt"
-referenceFolder = "reference_texts"
-fuzzyOutputPath = "output_fuzzy.txt"
-
-# File Paths
-mapPath = "v101_mapping.txt"  # Can be changed to "eva_mapping.txt"
-inputPath = "v101_cleaned.txt"  # Can be changed to "eva_cleaned.txt"
-outputPath = "output.txt"
-analysisPath = "analysis.txt"
-translatePath = "translated.txt"
+with open("config.json", "r", encoding="utf-8") as configFile:
+   config = json.load(configFile)
 
 # Read Input
+if config["transliteration"] == "v101":
+   inputPath = "v101_cleaned.txt"
+   mapPath = "v101_mapping.json"
+elif config["transliteration"] == "eva":
+   inputPath = "eva_cleaned.txt"
+   mapPath = "eva_mapping.json"
+
 with open(inputPath, "r", encoding="utf-8") as inputFile:
   all_lines = inputFile.readlines()
-  if endLine is None:
-    selected_lines = all_lines[startLine:]
+  if config["endLine"] == -1: # Set endLine to -1 to parse the entire v101 or eva file
+    selected_lines = all_lines[config["startLine"]-1:]
   else:
-    selected_lines = all_lines[startLine:endLine]
+    selected_lines = all_lines[config["startLine"]-1:config["endLine"]]
 
-  print(
-      f"Processing lines {startLine} to {len(all_lines) if endLine is None else endLine}..."
-  )
+  if config["endLine"] == -1:
+    print(f"Processing lines {config["startLine"]-1} to {len(selected_lines)}...")
+  else:
+    print(f"Processed {len(selected_lines)} lines...")
   inputData = "".join(selected_lines)
-  inputData = inputData.replace(".", spaceDelimiter)
-  inputData = inputData.replace(",", ambiguousSpaceDelimiter)
+  inputData = inputData.replace(".", config["spaceDelimiter"])
+  inputData = inputData.replace(",", config["ambiguousSpaceDelimiter"])
 
 # Outputs
-outputFile = open(outputPath, "w")
+outputFile = open(config["outputPath"], "w", encoding="utf-8")
 
 # Dictionaries
 num_to_char_normal = {}
@@ -118,8 +88,28 @@ is_third = False
 is_fourth = False
 
 with open(mapPath, "r", encoding="utf-8") as mapFile:
-  for line in mapFile:
-    line = line.strip()
+  with open(inputPath, "r", encoding="utf-8") as v101File:
+
+    foundChars = []
+
+    for char in v101File.read():
+
+      if not char in foundChars and char != "\n" and char != "," and char != "." and char != "-" and char != "=":
+        foundChars.append(char)
+
+    foundChars.sort()
+
+    cleaned_chars = []
+    for s in foundChars:
+      processed = ''.join(s.split())
+      if processed:
+        cleaned_chars.append(processed)
+
+  mapping = json.load(mapFile)
+
+  i = 0
+  while i < len(foundChars) - 1:
+    line = mapping[foundChars[i]]
     is_initial = False
     is_final = False
     is_first = False
@@ -127,34 +117,28 @@ with open(mapPath, "r", encoding="utf-8") as mapFile:
     is_third = False
     is_fourth = False
 
-    if not line or "=" not in line or "~" not in line or line.startswith(
-        commentOutChar):
-      continue
-
-    if line.endswith(startOfWordMarker):
+    if line.endswith(config["startOfWordMarker"]):
       line = line[:-1]
       is_initial = True
-    if line.endswith(endOfWordMarker):
+    if line.endswith(config["endOfWordMarker"]):
       line = line[:-1]
       is_final = True
-    if line.endswith(firstOccuranceMarker):
+    if line.endswith(config["firstOccuranceMarker"]):
       line = line[:-1]
       is_first = True
-    if line.endswith(secondOccuranceMarker):
+    if line.endswith(config["secondOccuranceMarker"]):
       line = line[:-1]
       is_second = True
-    if line.endswith(thirdOccuranceMarker):
+    if line.endswith(config["thirdOccuranceMarker"]):
       line = line[:-1]
       is_third = True
-    if line.endswith(fourthOccuranceMarker):
+    if line.endswith(config["fourthOccuranceMarker"]):
       line = line[:-1]
       is_fourth = True
 
-    number, line2 = line.split("=", 1)
-    char, outputChar = line2.split("~", 1)
-    number = number.strip()
-    char = char.strip()
-    outputChar = outputChar.strip()
+    char = foundChars[i]
+    outputChar = mapping[char].strip(config["endOfWordMarker"]).strip(config["startOfWordMarker"])
+    number = i
 
     if is_initial:
       input_char_to_num_initial[char] = number
@@ -192,6 +176,8 @@ with open(mapPath, "r", encoding="utf-8") as mapFile:
       char_to_num_normal[char] = number
       num_to_char_normal[number] = outputChar
 
+    i += 1
+
 all_keys = (list(input_char_to_num_normal.keys()) +
             list(input_char_to_num_final.keys()) +
             list(input_char_to_num_initial.keys()) +
@@ -207,20 +193,20 @@ all_keys = (list(input_char_to_num_normal.keys()) +
             list(num_to_char_first.keys()) + list(num_to_char_second.keys()) +
             list(num_to_char_third.keys()) + list(num_to_char_fourth.keys()))
 
-MAX_KEY_LENGTH = max((len(k) for k in all_keys), default=1)
-
+string_keys = [k for k in all_keys if isinstance(k, str)]
+MAX_KEY_LENGTH = max((len(k) for k in string_keys), default=1)
 
 ### Core Functions ###
 def is_word_start(index, data):
   if index == 0: return True
   prev_char = data[index - 1]
-  return prev_char in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
+  return prev_char in [config["spaceDelimiter"], config["ambiguousSpaceDelimiter"], "\n"]
 
 
 def is_word_end(index, data, length=1):
   if index + length >= len(data): return True
   return data[index +
-              length] in [spaceDelimiter, ambiguousSpaceDelimiter, "\n"]
+              length] in [config["spaceDelimiter"], config["ambiguousSpaceDelimiter"], "\n"]
 
 
 def getChar(inputNum, index, data, length, occurrence):
@@ -286,7 +272,7 @@ while i < len(inputData):
     i += 1
     continue
 
-  if ch in [spaceDelimiter, ambiguousSpaceDelimiter]:
+  if ch in [config["spaceDelimiter"], config["ambiguousSpaceDelimiter"]]:
     output_nums_list.append(ch + ".")
     output_chars_list.append(ch)
     word_char_counts.clear()
@@ -317,7 +303,7 @@ while i < len(inputData):
   encoded = getNum(match_str, i, inputData, current_occurrence)
   decoded = getChar(encoded, i, inputData, match_len, current_occurrence)
 
-  output_nums_list.append(encoded + ".")
+  output_nums_list.append(str(encoded) + ".")
   output_chars_list.append(decoded)
   i += match_len
 
@@ -325,19 +311,16 @@ outputRaw = "".join(output_chars_list)
 outputFile.write(outputRaw)
 outputFile.close()
 
-outputClean = outputRaw.replace(spaceDelimiter, "").replace(ambiguousSpaceDelimiter, "")#.replace("\n", "")
-outputForWords = outputRaw.replace(spaceDelimiter, " ").replace(ambiguousSpaceDelimiter, " ")#.replace("\n", " ")
-analysisFile = open(analysisPath, "w")
+outputClean = outputRaw.replace(config["spaceDelimiter"], "").replace(config["ambiguousSpaceDelimiter"], "")#.replace("\n", "")
+outputForWords = outputRaw.replace(config["spaceDelimiter"], " ").replace(config["ambiguousSpaceDelimiter"], " ")#.replace("\n", " ")
+analysisFile = open(config["analysisPath"], "w", encoding="utf-8")
 counts = Counter(outputClean)
 total_chars = len(outputClean)
-
 
 ### Analysis Helpers ###
 def analyze_reduplication(word_string):
   analysisFile.write("\n_____________________________\n")
-  normalized = word_string.replace("\n", " ").replace(ambiguousSpaceDelimiter,
-                                                      " ").replace(
-                                                          spaceDelimiter, " ")
+  normalized = word_string.replace("\n", " ").replace(config["ambiguousSpaceDelimiter"], " ").replace(config["spaceDelimiter"], " ")
   words = [w for w in normalized.split(" ") if w]
   redup_pairs = []
   redup_count = 0
@@ -355,9 +338,8 @@ def analyze_reduplication(word_string):
 
 
 def analyze_word_parts():
-  normalized = outputRaw.replace("\n", spaceDelimiter).replace(
-      ambiguousSpaceDelimiter, spaceDelimiter)
-  words = [w for w in normalized.split(spaceDelimiter) if w]
+  normalized = outputRaw.replace("\n", config["spaceDelimiter"]).replace(config["ambiguousSpaceDelimiter"], config["spaceDelimiter"])
+  words = [w for w in normalized.split(config["spaceDelimiter"]) if w]
   total_words = len(words)
   analysisFile.write("Total Words Processed: " + str(total_words) + "\n")
   analysisFile.write("_____________________________\n")
@@ -408,16 +390,21 @@ def entropy():
 
 def frequency():
   freq = {}
+  total_chars = len(outputClean) 
+  
   for char in set(outputClean):
     if char != "\n":
       freq[char] = outputClean.count(char)
-  freq_sorted = sorted(freq.items(), key=lambda x: x, reverse=True)
+  
+  freq_sorted = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+  
   analysisFile.write("Character Frequency:\n")
   for char, count in freq_sorted:
     if char != "\n":
-      analysisFile.write("{ " + char + ": " + str(count) + ", " +
-                         str(round(count / total_chars * 100, 3)) + "% }\n")
-  analysisFile.write("_____________________________\n\n")
+      percentage = round(count / total_chars * 100, 3) if total_chars > 0 else 0
+      analysisFile.write(f"{{ {char}: {count}, {percentage}% }}\n")
+  
+  analysisFile.write("_____________________________\n\n")   
 
 
 def sukhotin_vowel_analysis(text):
@@ -457,7 +444,7 @@ def sukhotin_vowel_analysis(text):
       f"\nFinal Vowels: {vowels}\nFinal Consonants: {consonants}\n")
 
 
-if enableAnalysis:
+if config["enableAnalysis"]:
   entropy()
   frequency()
   analyze_word_parts()
@@ -493,7 +480,7 @@ def plot_zipf_law(text):
                   ("Old French/Italian", 1.06, "orange", "-."),
                   ("Old English", 1.08, "purple", ":"),
                   ("Latin", 1.15, "yellow", "-.")]
-    if enableZipfsReferenceLines:
+    if config["enableZipfsReferenceLines"]:
       for label, slope, color, style in references:
         ref_line = c / (ranks**slope)
         plt.loglog(ranks,
@@ -518,52 +505,84 @@ def plot_zipf_law(text):
     print("Matplotlib not installed.")
 
 
-if enableZipfsLawGeneration:
+if config["enableZipfsLawGeneration"]:
   plot_zipf_law(outputForWords)
 
+import base64
 
 ### Comparison HTML ###
 def generate_html_report(original_text, transliterated_text):
-  orig_lines = original_text.replace(spaceDelimiter,
-                                     " ").replace(ambiguousSpaceDelimiter,
-                                                  " ").split("\n")
-  trans_lines = transliterated_text.replace(spaceDelimiter, " ").replace(
-      ambiguousSpaceDelimiter, " ").split("\n")
-  html = "<html><head><style>body{font-family:sans-serif;padding:20px;background:#f0f0f0}.container{display:flex;flex-direction:column;gap:10px}.row{display:flex;background:white;border-bottom:1px solid #ccc;padding:10px}.trans{flex:1;padding-right:10px;border-right:1px solid #eee;color:#333}.orig{flex:1;padding-left:10px;font-family:'Courier New',monospace}</style></head><body><h1>Comparison</h1><div class='container'>"
+  font_path = "voynich.ttf" # Ensure this path is correct relative to where you run the script
+  font_css = ""
+  font_family = "sans-serif"
+
+  if config["useVoynichChars"] and os.path.exists(font_path):
+      with open(font_path, "rb") as f:
+          font_data = base64.b64encode(f.read()).decode('utf-8')
+          font_css = f"""
+          @font-face {{
+              font-family: 'EmbeddedVoynich';
+              src: url('data:font/ttf;base64,{font_data}') format('truetype');
+          }}
+          """
+          font_family = "EmbeddedVoynich"
+
+  orig_lines = original_text.replace(config["spaceDelimiter"], " ").replace(config["ambiguousSpaceDelimiter"], " ").split("\n")
+  trans_lines = transliterated_text.replace(config["spaceDelimiter"], " ").replace(config["ambiguousSpaceDelimiter"], " ").split("\n")
+  
+  # Inject the font directly into the CSS
+  html = f"""<html><head><style>
+    {font_css}
+    body{{font-family:sans-serif;padding:20px;background:#f0f0f0}}
+    .container{{display:flex;flex-direction:column;gap:10px}}
+    .row{{display:flex;background:white;border-bottom:1px solid #ccc;padding:10px}}
+    .trans{{flex:1;padding-right:10px;border-right:1px solid #eee;color:#333;font-family:'{font_family}', sans-serif}}
+    .orig{{flex:1;padding-left:10px;font-family:'Courier New',monospace}}
+    </style></head><body><h1>Comparison</h1><div class='container'>"""
+  
+  import html as html_lib
   for t, o in zip(trans_lines, orig_lines):
     if not t.strip() and not o.strip(): continue
-    html += f"<div class='row'><div class='trans'>{t}</div><div class='orig'>{o}</div></div>"
+    html += f"<div class='row'><div class='trans'>{html_lib.escape(t)}</div><div class='orig'>{html_lib.escape(o)}</div></div>"
+  
   html += "</div></body></html>"
   with open("comparison.html", "w", encoding="utf-8") as f:
     f.write(html)
-  print("HTML Report saved.")
-
-
-if enableHTMLComparison:
+  print("HTML Report saved.")   
+  
+  for t, o in zip(trans_lines, orig_lines):
+    if not t.strip() and not o.strip(): continue
+    import html as html_lib
+    safe_t = html_lib.escape(t)
+    safe_o = html_lib.escape(o)
+    html += f"<div class='row'><div class='trans'>{safe_t}</div><div class='orig'>{safe_o}</div></div>"
+  
+  html += "</div></body></html>"
+  
+if config["enableHTMLComparison"]:
   generate_html_report(inputData, outputRaw)
   print("Saved HTML file.")
 
 ### Translation ###
-if enablePrintLanguages:
+if config["enablePrintLanguages"]:
   try:
     from deep_translator import GoogleTranslator
     print(GoogleTranslator().get_supported_languages(as_dict=True))
   except:
     pass
 
-if enableTranslation:
+if config["enableTranslation"]:
   try:
     from deep_translator import GoogleTranslator
-    translateFile = open(translatePath, "w")
+    translateFile = open(config["translatePath"], "w", encoding="utf-8")
     translateFile.close()
-    translateFile = open(translatePath, "a")
+    translateFile = open(config["translatePath"], "a", encoding="utf-8")
     chunk_size = 4900
     for i in range(0, len(outputRaw), chunk_size):
       chunk = outputRaw[i:i + chunk_size]
-      chunk_clean = chunk.replace(spaceDelimiter,
-                                  " ").replace(ambiguousSpaceDelimiter, " ")
+      chunk_clean = chunk.replace(config["spaceDelimiter"], " ").replace(config["ambiguousSpaceDelimiter"], " ")
       translated = GoogleTranslator(
-          source='la', target=translationLanguage).translate(text=chunk_clean)
+          source='la', target=config["translationLanguage"]).translate(text=chunk_clean)
       translateFile.write(translated + " ")
     print("Translated output.")
   except:
@@ -615,29 +634,29 @@ def run_corpus_analysis(transliterated_text):
     print("\nStarting Corpus Analysis...")
 
     # 1. Setup
-    clean_text = transliterated_text.replace(spaceDelimiter, " ").replace(ambiguousSpaceDelimiter, " ").lower()
+    clean_text = transliterated_text.replace(config["spaceDelimiter"], " ").replace(config["ambiguousSpaceDelimiter"], " ").lower()
     trans_words = clean_text.split()
     total_words = len(trans_words)
 
     # 2. Build Dictionary
     known_words = set()
 
-    if not os.path.exists(referenceFolder):
-        print(f"\n[!] ERROR: The folder '{referenceFolder}' does not exist.")
+    if not os.path.exists(config["referenceFolder"]):
+        print(f"\n[!] ERROR: The folder '{config["referenceFolder"]}' does not exist.")
         print("[!] Please create it and add reference .txt files. Skipping Corpus Analysis.\n")
         return
 
-    reference_files = [f for f in os.listdir(referenceFolder) if f.endswith('.txt')]
+    reference_files = [f for f in os.listdir(config["referenceFolder"]) if f.endswith('.txt')]
 
     if not reference_files:
-        print(f"\n[!] ERROR: No .txt files found in the '{referenceFolder}' folder.")
+        print(f"\n[!] ERROR: No .txt files found in the '{config["referenceFolder"]}' folder.")
         print("[!] The dictionary is empty. Skipping Corpus Analysis.\n")
         return
 
     remove_punct_map = str.maketrans('.,;:!?()"[]{}', '             ')
 
     for filename in reference_files:
-        with open(os.path.join(referenceFolder, filename), "r", encoding="utf-8", errors='ignore') as f:
+        with open(os.path.join(config["referenceFolder"], filename), "r", encoding="utf-8", errors='ignore') as f:
             content = f.read().lower().translate(remove_punct_map)
             known_words.update(content.split())
 
@@ -683,7 +702,7 @@ def run_corpus_analysis(transliterated_text):
         if w1 in match_cache:
             best_match = match_cache[w1]
         elif len(w1) >= 3:
-            cutoff = 0.65 + (toleranceLevel * 0.05)
+            cutoff = 0.65 + (config["toleranceLevel"] * 0.05)
             # OPTIMIZATION: Pass known_words_seq instead of the set
             matches = difflib.get_close_matches(w1, known_words_seq, n=1, cutoff=cutoff)
             if matches:
@@ -710,7 +729,7 @@ def run_corpus_analysis(transliterated_text):
                         i += 2
                         continue
                 else:
-                    m_cutoff = min(0.85, 0.70 + (toleranceLevel * 0.05))
+                    m_cutoff = min(0.85, 0.70 + (config["toleranceLevel"] * 0.05))
                     # OPTIMIZATION: Pass known_words_seq instead of the set
                     m_matches = difflib.get_close_matches(m2_cand, known_words_seq, n=1, cutoff=m_cutoff)
                     if m_matches:
@@ -731,19 +750,19 @@ def run_corpus_analysis(transliterated_text):
         i += 1
 
     # 5. Export
-    with open(corpusReportPath, "w", encoding="utf-8") as f:
+    with open(config["corpusReportPath"], "w", encoding="utf-8") as f:
         f.write(f"CORPUS ANALYSIS REPORT\n======================\nTotal Words: {total_words}\n")
         f.write("\nSEGMENTATION:\n" + "\n".join(findings_segmentation))
         f.write("\n\nFUZZY TYPOS:\n" + "\n".join(findings_fuzzy))
 
-    with open(fuzzyOutputPath, "w", encoding="utf-8") as f:
+    with open(config["fuzzyOutputPath"], "w", encoding="utf-8") as f:
         f.write(" ".join(corrected_text_list))
 
     print("Analysis Complete.")
-    print(f"Report: {corpusReportPath}")
-    print(f"Fuzzy Text Output: {fuzzyOutputPath}")
+    print(f"Report: {config["corpusReportPath"]}")
+    print(f"Fuzzy Text Output: {config["fuzzyOutputPath"]}")
 
-if enableFuzzyMatching:
+if config["enableFuzzyMatching"]:
   run_corpus_analysis(outputRaw)
 
 ### Closing ###
