@@ -1,0 +1,37 @@
+{
+    "transliteration": "v101",
+
+    "spaceDelimiter": "_",
+    "ambiguousSpaceDelimiter": "-",
+    
+    "endOfWordMarker": "/",
+    "startOfWordMarker": "@",
+
+    "firstOccuranceMarker": "'",
+    "secondOccuranceMarker": "\"",
+    "thirdOccuranceMarker": ":",
+    "fourthOccuranceMarker": ";",
+
+    "translationLanguage": "la",
+
+    "startLine": 1,
+    "endLine": -1,
+    
+    "enableAnalysis": false,
+    "enableZipfsLawGeneration": false,
+    "enableZipfsReferenceLines": false,
+    "enableHTMLComparison": false,
+    "useVoynichChars": false,
+    "enableTranslation": false,
+    "enablePrintLanguages": false,
+
+    "enableFuzzyMatching": true,
+    "toleranceLevel": 2,
+    "referenceFolder": "reference_texts",
+    "corpusReportPath": "discovery_report.txt",
+    "fuzzyOutputPath": "output_fuzzy.txt",
+
+    "outputPath": "output.txt",
+    "analysisPath": "analysis.txt",
+    "translatePath": "translated.txt"
+}
