@@ -25,7 +25,7 @@
     "enableTranslation": false,
     "enablePrintLanguages": false,
 
-    "enableFuzzyMatching": true,
+    "enableFuzzyMatching": false,
     "toleranceLevel": 2,
     "referenceFolder": "reference_texts",
     "corpusReportPath": "discovery_report.txt",
