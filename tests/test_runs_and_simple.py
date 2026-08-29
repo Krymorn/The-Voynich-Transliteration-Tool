@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
+import logging
 import time
 from pathlib import Path
 
@@ -530,28 +532,55 @@ def test_mapping_use_edits_an_advanced_config_in_place(workspace):
     assert adv["mapping"]["file"] == "mappings/trial.json"
 
 
-def test_an_advanced_file_that_cancels_the_simple_one_says_so(workspace, caplog):
-    import logging
+@contextlib.contextmanager
+def warnings_from_tvtt():
+    """Collect warnings the tool logs, without relying on pytest's caplog.
 
+    The CLI logger sets propagate=False so a message is never printed twice.
+    That also puts its records out of reach of caplog's root-logger handler on
+    pytest 8, while pytest 9 works around it -- so a test written against
+    caplog passes on Python 3.11 and fails on 3.9 for reasons that have nothing
+    to do with the code. Attach a handler where the records actually are.
+
+    Configure first: the logger sets itself up on first use and would clear the
+    handler we just added.
+    """
+    from tvtt.logging_util import LOGGER_NAME, configure
+
+    configure()
+    logger = logging.getLogger(LOGGER_NAME)
+    collected: list = []
+
+    class _Collect(logging.Handler):
+        def emit(self, record):
+            collected.append(record.getMessage())
+
+    handler = _Collect(level=logging.WARNING)
+    logger.addHandler(handler)
+    try:
+        yield collected
+    finally:
+        logger.removeHandler(handler)
+
+
+def test_an_advanced_file_that_cancels_the_simple_one_says_so(workspace):
     main(["init"])
     raw = json.loads((workspace / "config.json").read_text(encoding="utf-8"))
     raw["section"] = "zodiac"
     (workspace / "config.json").write_text(json.dumps(raw), encoding="utf-8")
     (workspace / "advanced_config.json").write_text(json.dumps({"selection": {"sections": []}}), encoding="utf-8")
-    with caplog.at_level(logging.WARNING):
+    with warnings_from_tvtt() as warned:
         config = load_config()
     assert config.get("selection.sections") == []
-    assert any("overrides" in r.getMessage() for r in caplog.records), "the silent override was not reported"
+    assert any("overrides" in w for w in warned), "the silent override was not reported: %s" % warned
 
 
-def test_no_override_warning_when_the_files_agree(workspace, caplog):
-    import logging
-
+def test_no_override_warning_when_the_files_agree(workspace):
     main(["init"])
     (workspace / "advanced_config.json").write_text(json.dumps({"performance": {"workers": 2}}), encoding="utf-8")
-    with caplog.at_level(logging.WARNING):
+    with warnings_from_tvtt() as warned:
         load_config()
-    assert not [r for r in caplog.records if "overrides" in r.getMessage()]
+    assert not [w for w in warned if "overrides" in w], warned
 
 
 def test_error_messages_never_carry_an_absolute_path(workspace, capsys):
