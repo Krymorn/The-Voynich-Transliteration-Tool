@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import Counter
 
 from ..langmodel import FITNESS_DESCRIPTIONS, FITNESS_FUNCTIONS, Fitness, FitnessOptions
-from ..mapping import LATIN_LOWER, SLOT_PLAIN, Mapping
+from ..mapping import LATIN_LOWER, SLOT_NAMES
 from ..profiles import save_mapping
 from ..reporting import glyph_label
 from ..solver import SEARCH_DESCRIPTIONS, SEARCH_METHODS, Problem, SearchOptions, solve
@@ -35,7 +35,15 @@ def run(ctx: PluginContext) -> dict:
         entropy_weight=ctx.setting("entropyWeight", 0.4),
     )
     fitness = Fitness(fitness_options, vocabulary)
-    problem = Problem(vocabulary, ctx.result.engine, fitness, alphabet=alphabet, locked=locked)
+    problem = Problem(
+        vocabulary,
+        ctx.result.engine,
+        fitness,
+        alphabet=alphabet,
+        locked=locked,
+        positions=ctx.setting("positions", "none"),
+        min_occurrences=ctx.setting("minOccurrences", 25),
+    )
 
     options = SearchOptions(
         method=method,
@@ -67,8 +75,13 @@ def run(ctx: PluginContext) -> dict:
         board_rows.append([rank, "%.5f" % score, sample])
 
     mapping_rows = [
-        [glyph_label(glyph), result.best_letters[i], "locked" if glyph in locked else ""]
-        for i, glyph in enumerate(problem.glyphs)
+        [
+            glyph_label(problem.glyphs[g]),
+            SLOT_NAMES.get(slot, "plain"),
+            result.best_letters[i],
+            "locked" if problem.glyphs[g] in locked else "",
+        ]
+        for i, (g, slot) in enumerate(problem.units)
     ]
 
     blocks = [
@@ -103,11 +116,11 @@ def run(ctx: PluginContext) -> dict:
         _warning(),
     ]
     save_text(ctx, "solver.txt", "\n".join(blocks) + "\n", "automated mapping search")
-    save_json(ctx, "solver.json", result.to_dict(problem.glyphs), "the best mapping and the leaderboard")
+    save_json(ctx, "solver.json", result.to_dict(problem), "the best mapping and the leaderboard")
 
     if ctx.setting("saveAs"):
-        mapping = Mapping(
-            rules={g: {SLOT_PLAIN: result.best_letters[i]} for i, g in enumerate(problem.glyphs)},
+        mapping = result.as_mapping(
+            problem,
             meta={
                 "name": ctx.setting("saveAs"),
                 "alphabet": ctx.corpus.alphabet,
@@ -115,6 +128,7 @@ def run(ctx: PluginContext) -> dict:
                 "notes": "found by %s search on %s, fitness %s" % (method, ctx.corpus.selection.describe(), function),
                 "score": round(result.best_score, 6),
                 "score_metric": function,
+                "positions": problem.positions,
             },
         )
         path = save_mapping(mapping, ctx.setting("saveAs"), note="solver result")
@@ -129,7 +143,9 @@ def run(ctx: PluginContext) -> dict:
         "improvement": round(result.best_score - current, 6),
         "evaluations": result.evaluations,
         "elapsed_seconds": round(result.elapsed, 2),
-        "best_mapping": {glyph_label(g): result.best_letters[i] for i, g in enumerate(problem.glyphs)},
+        "positions": problem.positions,
+        "rules_searched": len(problem.units),
+        "best_mapping": {glyph_label(problem.unit_label(i)): result.best_letters[i] for i in range(len(problem.units))},
         "leaderboard": [{"rank": i + 1, "score": round(s, 6)} for i, (s, _l) in enumerate(result.leaderboard)],
     }
 
@@ -192,6 +208,8 @@ PLUGIN = Plugin(
         "startTemperature": 1.0,
         "endTemperature": 0.01,
         "leaderboard": 10,
+        "positions": "none",
+        "minOccurrences": 25,
         "alphabet": LATIN_LOWER,
         "lock": {},
         "injective": False,
@@ -213,6 +231,16 @@ PLUGIN = Plugin(
         "startTemperature": "Annealing start temperature: higher explores more.",
         "endTemperature": "Annealing end temperature.",
         "leaderboard": "How many near-miss candidates to keep.",
+        "positions": (
+            "Which positional rules the search may use: 'none' for one letter per glyph, "
+            "'edges' to let a glyph differ at the start and end of a word, 'all' to add the "
+            "first four occurrences within a word. Voynichese is strongly positional, but "
+            "every position added is another free parameter, so check the overfitting report."
+        ),
+        "minOccurrences": (
+            "A position is searched separately only when it covers at least this many "
+            "occurrences, which keeps rare positions from becoming free parameters."
+        ),
         "alphabet": "The letters the search may assign.",
         "lock": 'Glyphs to fix, as an object: {"o": "a"}.',
         "injective": "Force every glyph to a different letter.",

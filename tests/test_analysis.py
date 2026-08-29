@@ -206,3 +206,90 @@ def test_holdout_drop_is_reported():
     report = B.HoldoutReport("A", "B", fit_score=1.0, holdout_score=0.5, metric="q")
     assert report.drop == pytest.approx(0.5)
     assert "memoris" in report.verdict() or "collapses" in report.verdict()
+
+
+# --------------------------------------------------------------------------
+# Positional search
+# --------------------------------------------------------------------------
+
+
+def _search_problem(positions, min_occurrences=25):
+    from collections import Counter
+
+    from tvtt.corpus import Selection, load_corpus
+    from tvtt.langmodel import Fitness, FitnessOptions
+    from tvtt.mapping import Mapping
+    from tvtt.solver import Problem
+    from tvtt.transliterate import build_engine
+
+    corpus = load_corpus("zl").select(Selection(sections=("zodiac",)))
+    engine = build_engine(Mapping.from_dict({"rules": {}}), corpus)
+    vocabulary = Counter(corpus.words())
+    fitness = Fitness(FitnessOptions(function="quadgram", language="latin"), vocabulary)
+    problem = Problem(vocabulary, engine, fitness, positions=positions, min_occurrences=min_occurrences)
+    return corpus, problem
+
+
+def test_positions_add_searchable_units():
+    _, plain = _search_problem("none")
+    _, edges = _search_problem("edges")
+    _, every = _search_problem("all")
+    assert len(plain.units) == len(plain.glyphs)
+    assert len(edges.units) > len(plain.units)
+    assert len(every.units) > len(edges.units)
+
+
+def test_a_positional_search_reproduces_the_text_it_scored():
+    """The mapping handed back must produce exactly what the search measured."""
+    from tvtt.solver import SearchOptions, solve
+    from tvtt.transliterate import build_engine
+
+    for positions in ("none", "edges", "all"):
+        corpus, problem = _search_problem(positions)
+        result = solve(problem, SearchOptions(method="hillclimb", iterations=1500, restarts=1, seed=3))
+        scored = problem.render_all(result.best_letters)
+        engine = build_engine(result.as_mapping(problem), corpus)
+        assert scored == [engine.map_word(w) for w in problem.types], positions
+
+
+def test_a_rare_position_does_not_become_a_free_parameter():
+    _, strict = _search_problem("all", min_occurrences=100000)
+    _, loose = _search_problem("all", min_occurrences=1)
+    assert len(strict.units) == len(strict.glyphs), "nothing should clear an impossible threshold"
+    assert len(loose.units) > len(strict.units)
+
+
+def test_locking_a_glyph_locks_all_of_its_positions():
+    from collections import Counter
+
+    from tvtt.corpus import Selection, load_corpus
+    from tvtt.langmodel import Fitness, FitnessOptions
+    from tvtt.mapping import Mapping
+    from tvtt.solver import Problem, SearchOptions, solve
+    from tvtt.transliterate import build_engine
+
+    corpus = load_corpus("zl").select(Selection(sections=("zodiac",)))
+    engine = build_engine(Mapping.from_dict({"rules": {}}), corpus)
+    vocabulary = Counter(corpus.words())
+    fitness = Fitness(FitnessOptions(function="quadgram", language="latin"), vocabulary)
+    problem = Problem(vocabulary, engine, fitness, positions="all", locked={"o": "z"})
+    assert problem.locked, "the lock was not applied to any unit"
+    result = solve(problem, SearchOptions(method="hillclimb", iterations=800, restarts=1, seed=1))
+    for index in problem.locked:
+        assert result.best_letters[index] == "z"
+
+
+def test_the_solver_result_carries_structured_rules():
+    from tvtt.mapping import SLOT_PLAIN
+    from tvtt.solver import SearchOptions, solve
+
+    _, problem = _search_problem("edges")
+    result = solve(problem, SearchOptions(method="hillclimb", iterations=1000, restarts=1, seed=2))
+    payload = result.to_dict(problem)
+    assert payload["positions"] == "edges"
+    assert payload["best_rules"], "no structured rules were recorded"
+    # At least one glyph should have been given a rule beyond the plain one.
+    assert any(isinstance(v, dict) and set(v) - {"plain"} for v in payload["best_rules"].values()) or any(
+        isinstance(v, list) for v in payload["best_rules"].values()
+    ), payload["best_rules"]
+    assert SLOT_PLAIN is not None

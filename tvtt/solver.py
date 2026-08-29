@@ -33,11 +33,54 @@ from typing import Callable
 
 from .langmodel import Fitness, FitnessOptions
 from .logging_util import get_logger
-from .mapping import LATIN_LOWER, SLOT_PLAIN, Mapping, MappingEngine
+from .mapping import (
+    DEFAULT_PRECEDENCE,
+    LATIN_LOWER,
+    N_CONTEXTS,
+    OCCURRENCE_SLOTS,
+    SLOT_FINAL,
+    SLOT_INITIAL,
+    SLOT_NAMES,
+    SLOT_PLAIN,
+    Mapping,
+    MappingEngine,
+    unpack_context,
+)
 
 _log = get_logger("solver")
 
 SEARCH_METHODS = ("hillclimb", "anneal", "genetic")
+
+#: Which positional rules a search may use. Voynichese glyphs are strongly
+#: positional - in EVA, q almost only starts a word and n almost only ends one -
+#: so a search restricted to one letter per glyph cannot express what the
+#: manuscript appears to do. Every position added is also another free
+#: parameter, which is why this is a choice rather than a default.
+POSITION_SETS = {
+    "none": (),
+    "edges": (SLOT_INITIAL, SLOT_FINAL),
+    "all": (SLOT_INITIAL, SLOT_FINAL) + OCCURRENCE_SLOTS,
+}
+
+
+def _slots_for(at_start: bool, at_end: bool, occurrence: int, wanted, precedence) -> list:
+    """The slots that could claim this occurrence, in the engine's own order."""
+    out = []
+    for term in precedence:
+        if term == "initial" and at_start and SLOT_INITIAL in wanted:
+            out.append(SLOT_INITIAL)
+        elif term == "final" and at_end and SLOT_FINAL in wanted:
+            out.append(SLOT_FINAL)
+        elif term == "occurrence" and 1 <= occurrence <= 4:
+            slot = OCCURRENCE_SLOTS[occurrence - 1]
+            if slot in wanted:
+                out.append(slot)
+        elif term == "plain":
+            out.append(SLOT_PLAIN)
+    if SLOT_PLAIN not in out:
+        out.append(SLOT_PLAIN)
+    return out
+
 
 SEARCH_DESCRIPTIONS = {
     "hillclimb": "Repeatedly swap or change one glyph's letter and keep the change if the score improves. Restarts from a new random mapping when it gets stuck.",
@@ -63,11 +106,22 @@ class Candidate:
     def copy(self) -> Candidate:
         return Candidate(list(self.letters), self.score)
 
-    def as_mapping(self, glyphs: Sequence, meta: dict = None) -> Mapping:
-        return Mapping(
-            rules={g: {SLOT_PLAIN: self.letters[i]} for i, g in enumerate(glyphs)},
-            meta=meta or {},
-        )
+    def as_mapping(self, glyphs: Sequence, meta: dict = None, units: Sequence = None) -> Mapping:
+        """Build the mapping this candidate stands for.
+
+        Without ``units`` every entry is a plain rule, which is the flat
+        one-letter-per-glyph search. With them, an entry can belong to a
+        position - initial, final, or an occurrence - and becomes a rule in
+        that slot instead.
+        """
+        rules: dict = {}
+        if units is None:
+            for i, glyph in enumerate(glyphs):
+                rules[glyph] = {SLOT_PLAIN: self.letters[i]}
+        else:
+            for i, (glyph_index, slot) in enumerate(units):
+                rules.setdefault(glyphs[glyph_index], {})[slot] = self.letters[i]
+        return Mapping(rules=rules, meta=meta or {})
 
 
 class Problem:
@@ -84,27 +138,96 @@ class Problem:
         fitness: Fitness,
         alphabet: str = LATIN_LOWER,
         locked: dict = None,
+        positions: str = "none",
+        min_occurrences: int = 25,
     ) -> None:
         self.vocabulary = vocabulary
         self.fitness = fitness
         self.alphabet = list(alphabet)
         self.glyphs = list(engine.keys)
         self.glyph_index = {g: i for i, g in enumerate(self.glyphs)}
-        self.locked = {self.glyph_index[g]: v for g, v in (locked or {}).items() if g in self.glyph_index}
-        self.free = [i for i in range(len(self.glyphs)) if i not in self.locked]
+        self.precedence = tuple(getattr(engine, "precedence", DEFAULT_PRECEDENCE))
+        self.positions = positions
 
-        # Word plans: each type becomes a tuple of glyph indices, and we record
-        # which types every glyph appears in so a change can be applied locally.
         self.types = list(vocabulary)
         self.counts = [vocabulary[w] for w in self.types]
+        segments = [engine.segment(word) for word in self.types]
+
+        # Which (glyph, slot) pairs are worth searching separately. A slot that
+        # barely occurs is not evidence of anything, and every extra unit is
+        # another free parameter the fitness can be fitted to.
+        self.units, unit_of = self._build_units(segments, positions, min_occurrences)
+        self.unit_index = {unit: i for i, unit in enumerate(self.units)}
+
+        locked = locked or {}
+        self.locked = {}
+        for glyph, value in locked.items():
+            gi = self.glyph_index.get(glyph)
+            if gi is None:
+                continue
+            # Locking a glyph locks it in every position it was given.
+            for i, (unit_glyph, _slot) in enumerate(self.units):
+                if unit_glyph == gi:
+                    self.locked[i] = value
+        self.free = [i for i in range(len(self.units)) if i not in self.locked]
+
+        # Word plans, now in terms of units rather than bare glyphs.
         self.plans = []
-        self.types_using: dict = {i: set() for i in range(len(self.glyphs))}
-        for type_index, word in enumerate(self.types):
-            plan = tuple(p // 20 for p in engine.segment(word))
+        self.types_using: dict = {i: set() for i in range(len(self.units))}
+        for type_index, segment in enumerate(segments):
+            plan = tuple(unit_of[piece] for piece in segment)
             self.plans.append(plan)
-            for glyph_index in set(plan):
-                self.types_using[glyph_index].add(type_index)
-        self.plan_bytes = [bytes(plan) for plan in self.plans] if len(self.glyphs) <= 256 else []
+            for unit in set(plan):
+                self.types_using[unit].add(type_index)
+        self.plan_bytes = [bytes(plan) for plan in self.plans] if len(self.units) <= 256 else []
+
+    def _build_units(self, segments: Sequence, positions: str, min_occurrences: int):
+        """Decide which (glyph, slot) pairs get their own letter.
+
+        Returns the unit list and a lookup from a segmented piece - which packs
+        the glyph and its word context - to the unit that piece belongs to. The
+        lookup applies the engine's own precedence, so the mapping this search
+        produces reproduces exactly the text the search scored.
+        """
+        wanted = POSITION_SETS.get(positions, ())
+        weight: dict = {}
+        for segment, count in zip(segments, self.counts):
+            for piece in segment:
+                weight[piece] = weight.get(piece, 0) + count
+
+        # A (glyph, slot) pair earns a unit only if enough of the text uses it.
+        occurrences: dict = {}
+        for piece, count in weight.items():
+            glyph_index, context = divmod(piece, N_CONTEXTS)
+            at_start, at_end, occ = unpack_context(context)
+            for slot in _slots_for(at_start, at_end, occ, wanted, self.precedence):
+                occurrences[(glyph_index, slot)] = occurrences.get((glyph_index, slot), 0) + count
+                break
+
+        units = [(g, SLOT_PLAIN) for g in range(len(self.glyphs))]
+        seen = set(units)
+        for key, count in sorted(occurrences.items(), key=lambda kv: (-kv[1], kv[0])):
+            if key[1] != SLOT_PLAIN and count >= min_occurrences and key not in seen:
+                units.append(key)
+                seen.add(key)
+
+        index = {unit: i for i, unit in enumerate(units)}
+        unit_of: dict = {}
+        for piece in weight:
+            glyph_index, context = divmod(piece, N_CONTEXTS)
+            at_start, at_end, occ = unpack_context(context)
+            chosen = index[(glyph_index, SLOT_PLAIN)]
+            for slot in _slots_for(at_start, at_end, occ, wanted, self.precedence):
+                if (glyph_index, slot) in index:
+                    chosen = index[(glyph_index, slot)]
+                    break
+            unit_of[piece] = chosen
+        return units, unit_of
+
+    def unit_label(self, index: int) -> str:
+        glyph_index, slot = self.units[index]
+        name = SLOT_NAMES.get(slot, "plain")
+        return self.glyphs[glyph_index] if slot == SLOT_PLAIN else "%s (%s)" % (self.glyphs[glyph_index], name)
 
     def render(self, letters: Sequence, type_index: int) -> str:
         # map() over the list's own __getitem__ is measurably faster than a
@@ -124,7 +247,7 @@ class Problem:
         joining a Python list.  That moves the innermost loop into C and is
         worth roughly a factor of three on a real run.
         """
-        return len(self.glyphs) <= 256 and all(len(c) == 1 and ord(c) < 256 for c in self.alphabet)
+        return len(self.units) <= 256 and all(len(c) == 1 and ord(c) < 256 for c in self.alphabet)
 
     def make_table(self, letters: Sequence) -> bytearray:
         table = bytearray(range(256))
@@ -152,10 +275,10 @@ class Problem:
         alphabet has letters, so the option quietly falls back to sampling
         with replacement.
         """
-        if injective and len(self.alphabet) >= len(self.glyphs):
-            letters = rng.sample(self.alphabet, len(self.glyphs))
+        if injective and len(self.alphabet) >= len(self.units):
+            letters = rng.sample(self.alphabet, len(self.units))
         else:
-            letters = [rng.choice(self.alphabet) for _ in self.glyphs]
+            letters = [rng.choice(self.alphabet) for _ in self.units]
         for index, value in self.locked.items():
             letters[index] = value
         return letters
@@ -163,12 +286,12 @@ class Problem:
     def frequency_seed(self, letter_frequencies: Sequence) -> list:
         """Start from the classic guess: commonest glyph -> commonest letter."""
         order = sorted(
-            range(len(self.glyphs)),
+            range(len(self.units)),
             key=lambda i: -sum(self.counts[t] * self.plans[t].count(i) for t in self.types_using[i]),
         )
-        letters = [self.alphabet[0]] * len(self.glyphs)
-        for rank, glyph_index in enumerate(order):
-            letters[glyph_index] = letter_frequencies[rank] if rank < len(letter_frequencies) else self.alphabet[0]
+        letters = [self.alphabet[0]] * len(self.units)
+        for rank, unit in enumerate(order):
+            letters[unit] = letter_frequencies[rank] if rank < len(letter_frequencies) else self.alphabet[0]
         for index, value in self.locked.items():
             letters[index] = value
         return letters
@@ -219,19 +342,37 @@ class SolverResult:
     fitness: str
     elapsed: float
 
-    def to_dict(self, glyphs: Sequence) -> dict:
+    def to_dict(self, problem: Problem) -> dict:
+        """The result as JSON.
+
+        ``best_mapping`` stays a flat glyph -> letters object so the file can be
+        handed straight back to ``--mapping``. When the search used positions,
+        a glyph appears once per position it was given, labelled, and
+        ``best_rules`` carries the structured form that reproduces it exactly.
+        """
+        labels = [problem.unit_label(i) for i in range(len(problem.units))]
         return {
             "method": self.method,
             "fitness": self.fitness,
+            "positions": problem.positions,
             "best_score": round(self.best_score, 6),
             "evaluations": self.evaluations,
             "elapsed_seconds": round(self.elapsed, 2),
-            "best_mapping": {g: self.best_letters[i] for i, g in enumerate(glyphs)},
+            "best_mapping": {label: self.best_letters[i] for i, label in enumerate(labels)},
+            "best_rules": self.as_mapping(problem).to_dict()["rules"],
             "leaderboard": [
-                {"rank": i + 1, "score": round(score, 6), "mapping": {g: letters[j] for j, g in enumerate(glyphs)}}
+                {
+                    "rank": i + 1,
+                    "score": round(score, 6),
+                    "mapping": {label: letters[j] for j, label in enumerate(labels)},
+                }
                 for i, (score, letters) in enumerate(self.leaderboard)
             ],
         }
+
+    def as_mapping(self, problem: Problem, meta: dict = None) -> Mapping:
+        """The best candidate as a real mapping, positions and all."""
+        return Candidate(list(self.best_letters)).as_mapping(problem.glyphs, meta, problem.units)
 
 
 class Leaderboard:

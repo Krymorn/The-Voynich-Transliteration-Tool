@@ -132,6 +132,7 @@ tvtt solve --method anneal --fitness quadgram --language latin
 | `--language` | a name from `tvtt dictionaries` |
 | `--iterations` | candidate evaluations for hillclimb and anneal |
 | `--restarts` | random restarts for hill climbing |
+| `--positions` | `none` (default), `edges`, `all` — let a glyph differ by position |
 | `--lock GLYPH=LETTER` | fix one glyph; repeatable |
 | `--swap-only` | only exchange letters between glyphs |
 | `--injective` | force every glyph to a different letter |

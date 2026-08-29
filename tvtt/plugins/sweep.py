@@ -63,7 +63,7 @@ def run(ctx: PluginContext) -> dict:
                 "score": round(result.best_score, 6),
                 "evaluations": result.evaluations,
                 "elapsed_seconds": round(result.elapsed, 2),
-                "mapping": {g: result.best_letters[i] for i, g in enumerate(problem.glyphs)},
+                "mapping": {problem.unit_label(i): result.best_letters[i] for i in range(len(problem.units))},
             }
         )
 

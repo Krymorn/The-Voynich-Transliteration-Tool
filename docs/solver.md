@@ -55,6 +55,37 @@ tvtt solve --fitness quadgram --language latin
 `dictionary` sounds more direct but is much easier to overfit, since it rewards any mapping
 that manufactures short common words.
 
+## Searching positional rules
+
+By default the search assigns one letter per glyph. That cannot express what
+the manuscript appears to do: in EVA `q` almost only starts a word and `n`
+almost only ends one, and a mapping is allowed to say so.
+
+```bash
+tvtt solve --positions edges    # a glyph may differ at word start and word end
+tvtt solve --positions all      # also the first four occurrences within a word
+```
+
+A position becomes a searchable rule only when it covers at least
+`minOccurrences` occurrences (25 by default), so a position that barely happens
+does not turn into a free parameter.
+
+**Measure before you trust it.** On Herbal A, with the genetic method over two
+seeds, adding positions did not help: dictionary coverage stayed near 80% while
+stopword alignment fell from about 15% with plain rules to 7% with `edges` and
+3% with `all`. The extra freedom bought score, not meaning — which is the
+overfitting signature this tool exists to expose.
+
+That is one section, one language and two seeds, not a general law. Run it on
+your own selection and compare, and read `overfitting` alongside:
+
+```bash
+tvtt run --plugin overfitting --plugin corpus_match --plugin holdout
+```
+
+`overfitting` scores your mapping against the same mapping with every extra
+rule stripped out, and says how much the extra rules actually bought.
+
 ## Constraining the search
 
 Constraining is usually worth more than running longer, and it keeps the result recognisably

@@ -169,6 +169,12 @@ def _add_solve(sub) -> None:
     p.add_argument(
         "--lock", action="append", default=[], metavar="GLYPH=LETTER", help="fix a glyph's letter (repeatable)"
     )
+    p.add_argument(
+        "--positions",
+        choices=["none", "edges", "all"],
+        help="let a glyph take a different letter by position: 'edges' for word start and end, "
+        "'all' also for the first four occurrences within a word",
+    )
     p.add_argument("--swap-only", action="store_true", help="only exchange letters between glyphs")
     p.add_argument("--injective", action="store_true", help="force every glyph to a different letter")
     p.add_argument("--save-as", metavar="NAME", help="save the best mapping as a profile")
@@ -598,6 +604,8 @@ def cmd_solve(args) -> int:
         settings["iterations"] = args.iterations
     if args.restarts:
         settings["restarts"] = args.restarts
+    if args.positions:
+        settings["positions"] = args.positions
     if args.save_as:
         settings["saveAs"] = args.save_as
 
