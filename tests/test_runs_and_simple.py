@@ -634,3 +634,25 @@ def test_init_advanced_from_scratch_points_at_the_starter_mapping(workspace):
     main(["init", "--advanced"])
     advanced = json.loads((workspace / "advanced_config.json").read_text(encoding="utf-8"))
     assert (workspace / advanced["mapping"]["file"]).exists()
+
+
+def test_plugins_set_checks_the_kind_of_value(workspace, capsys):
+    """A word where a number belongs used to be saved and blow up much later."""
+    main(["init"])
+    capsys.readouterr()
+    assert main(["plugins", "set", "solve", "iterations", "abc"]) != 0
+    assert "is a number" in capsys.readouterr().err
+    assert main(["plugins", "set", "html_report", "pageImages", "maybe"]) != 0
+    assert "true/false" in capsys.readouterr().err
+
+
+def test_plugins_set_still_accepts_correct_values(workspace):
+    main(["init"])
+    assert main(["plugins", "set", "solve", "iterations", "5000"]) == 0
+    assert main(["plugins", "set", "html_report", "pageImages", "false"]) == 0
+    assert main(["plugins", "set", "solve", "method", "anneal"]) == 0
+    advanced = json.loads((workspace / "advanced_plugins.json").read_text(encoding="utf-8"))
+    settings = advanced["plugins"]
+    assert settings["solve"]["settings"]["iterations"] == 5000
+    assert settings["html_report"]["settings"]["pageImages"] is False
+    assert settings["solve"]["settings"]["method"] == "anneal"

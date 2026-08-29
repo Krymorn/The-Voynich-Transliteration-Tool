@@ -217,6 +217,15 @@ class FolioTable:
             )
         return {k for k, info in self.entries.items() if spec.matches(info)}
 
+    def known_scribes(self) -> list:
+        """Every scribe the metadata actually attributes a page to."""
+        return sorted({info.scribe for info in self.entries.values() if info.scribe})
+
+    def known_quires(self) -> list:
+        """Every quire, as the numbers people cite them by."""
+        numbers = {quire_number(info.quire) for info in self.entries.values() if info.quire}
+        return [str(n) for n in sorted(n for n in numbers if n)]
+
     def by_scribe(self, scribe: str) -> set:
         return {k for k, info in self.entries.items() if info.scribe == str(scribe)}
 

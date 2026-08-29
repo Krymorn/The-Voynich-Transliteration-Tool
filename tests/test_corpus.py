@@ -248,3 +248,65 @@ def test_illustration_and_extraneous_names_follow_the_specification():
     assert ILLUSTRATION_NAMES["A"] == "astronomical (excluding zodiac)"
     assert "sequence" in EXTRANEOUS_NAMES["S"]
     assert "deprecated" in EXTRANEOUS_NAMES["V"]
+
+
+# --------------------------------------------------------------------------
+# A filter that matches nothing because it is a typo
+# --------------------------------------------------------------------------
+
+
+def _zl():
+    from tvtt.corpus import load_corpus
+
+    return load_corpus("zl")
+
+
+def test_an_unknown_folio_is_refused():
+    """Only sections were checked; every other filter went quietly empty."""
+    import pytest
+
+    from tvtt.corpus import Selection
+    from tvtt.errors import ConfigError
+
+    for spec in ("f999r", "500r-600v", "nonsense"):
+        with pytest.raises(ConfigError) as excinfo:
+            _zl().select(Selection(folios=(spec,)))
+        assert spec in str(excinfo.value)
+
+
+def test_an_unknown_scribe_quire_or_hand_is_refused():
+    import pytest
+
+    from tvtt.corpus import Selection
+    from tvtt.errors import ConfigError
+
+    for selection in (
+        Selection(scribes=("9",)),
+        Selection(scribes=("zzz",)),
+        Selection(quires=("99",)),
+        Selection(currier_hands=("Z",)),
+    ):
+        with pytest.raises(ConfigError):
+            _zl().select(selection)
+
+
+def test_the_real_values_still_select():
+    from tvtt.corpus import Selection
+
+    zl = _zl()
+    assert len(zl.select(Selection(folios=("1r-10v",))).loci) > 0
+    assert len(zl.select(Selection(scribes=("2",))).loci) > 0
+    assert len(zl.select(Selection(quires=("13",))).loci) > 0
+    assert len(zl.select(Selection(quires=("M",))).loci) > 0
+
+
+def test_the_error_lists_what_is_available():
+    import pytest
+
+    from tvtt.corpus import Selection
+    from tvtt.errors import ConfigError
+
+    with pytest.raises(ConfigError) as excinfo:
+        _zl().select(Selection(scribes=("9",)))
+    hint = getattr(excinfo.value, "hint", "") or ""
+    assert "1" in hint and "5" in hint, hint

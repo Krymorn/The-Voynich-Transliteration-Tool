@@ -356,7 +356,16 @@ class Corpus:
         if selection.folios:
             explicit = set()
             for spec in selection.folios:
-                explicit.update(parse_folio_range(spec))
+                found = parse_folio_range(spec)
+                # A folio nobody has is a typo, not an empty result. Sections
+                # are already checked this way; the rest of the filters were
+                # not, so "--folio f999r" quietly produced nothing at all.
+                if not (set(found) & set(self.folios.entries)):
+                    raise ConfigError(
+                        "no folio matches %r" % spec,
+                        hint="Run 'tvtt folios' to list them. Ranges look like 1r-10v.",
+                    )
+                explicit.update(found)
             allowed_keys = explicit if allowed_keys is None else (allowed_keys & explicit)
         if selection.currier != "any":
             keys = self.folios.by_currier(selection.currier)
@@ -364,16 +373,35 @@ class Corpus:
         if selection.scribes:
             keys = set()
             for scribe in selection.scribes:
-                keys |= self.folios.by_scribe(str(scribe))
+                found = self.folios.by_scribe(str(scribe))
+                if not found:
+                    raise ConfigError(
+                        "no folio is attributed to scribe %r" % scribe,
+                        hint="Known scribes: " + (", ".join(self.folios.known_scribes()) or "none recorded"),
+                    )
+                keys |= found
             allowed_keys = keys if allowed_keys is None else (allowed_keys & keys)
         if selection.currier_hands:
             wanted = {str(h) for h in selection.currier_hands}
+            known = {info.currier_hand for info in self.folios.entries.values() if info.currier_hand}
+            for hand in sorted(wanted - known):
+                raise ConfigError(
+                    "no folio is attributed to Currier hand %r" % hand,
+                    hint="Known hands: " + (", ".join(sorted(known)) or "none recorded"),
+                )
             keys = {k for k, info in self.folios.entries.items() if info.currier_hand in wanted}
             allowed_keys = keys if allowed_keys is None else (allowed_keys & keys)
         if selection.quires:
             keys = set()
             for quire in selection.quires:
-                keys |= self.folios.by_quire(str(quire))
+                found = self.folios.by_quire(str(quire))
+                if not found:
+                    raise ConfigError(
+                        "no folio is in quire %r" % quire,
+                        hint="Quires are numbered 1 to 20, or given by letter: "
+                        + (", ".join(self.folios.known_quires()) or "none recorded"),
+                    )
+                keys |= found
             allowed_keys = keys if allowed_keys is None else (allowed_keys & keys)
 
         excluded = set()

@@ -1036,6 +1036,24 @@ def cmd_plugins_set(args) -> int:
         )
     value = _coerce(args.value)
 
+    # Check the value against the kind the setting already holds. Writing a
+    # word where a number belongs used to be accepted, saved, and then surface
+    # much later as a raw Python TypeError from inside the plugin.
+    default = plugin.defaults[args.key]
+    if isinstance(default, bool):
+        if not isinstance(value, bool):
+            raise TvttError(
+                "%s.%s is a true/false setting, and %r is not" % (args.name, args.key, args.value),
+                hint="Write it as: tvtt plugins set %s %s true" % (args.name, args.key),
+            )
+    elif isinstance(default, (int, float)) and not isinstance(value, (int, float)):
+        raise TvttError(
+            "%s.%s is a number, and %r is not" % (args.name, args.key, args.value),
+            hint="Its current value is %s." % json.dumps(default),
+        )
+    elif isinstance(default, str) and not isinstance(value, str):
+        value = args.value
+
     def mutate(plugins):
         entry = plugins.setdefault(args.name, {})
         entry.setdefault("settings", {})[args.key] = value
