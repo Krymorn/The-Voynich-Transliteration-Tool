@@ -455,3 +455,120 @@ def test_holdout_keeps_glyphs_that_only_exist_outside_the_selection():
     # An engine that has never seen 'x' drops it; the one holdout builds keeps it.
     assert narrow.map_word("xoex") == "oe"
     assert wide.map_word("xoex") == "xoex"
+
+
+def test_the_reproduce_command_carries_the_selection(tmp_path, monkeypatch):
+    """It used to name only the transcription, mapping and seed.
+
+    Following it after a run over one section replayed the whole manuscript,
+    which makes a field called "reproduce" actively misleading.
+    """
+    import json
+
+    from tvtt.cli import main
+    from tvtt.paths import set_workspace
+
+    monkeypatch.chdir(tmp_path)
+    set_workspace(tmp_path)
+    main(["init"])
+    main(
+        [
+            "run",
+            "--section",
+            "herbal_a",
+            "--currier",
+            "A",
+            "--text-class",
+            "running",
+            "--plugin",
+            "transliteration",
+            "--no-progress",
+            "--quiet",
+        ]
+    )
+    manifest = json.loads((tmp_path / "output" / "run-001" / "manifest.json").read_text(encoding="utf-8"))
+    command = manifest["reproduce"]
+    assert "--section herbal_a" in command, command
+    assert "--currier A" in command, command
+    assert "--text-class running" in command, command
+
+
+def test_a_selection_with_no_flag_reproduces_through_set(tmp_path, monkeypatch):
+    import json
+
+    from tvtt.cli import main
+    from tvtt.paths import set_workspace
+
+    monkeypatch.chdir(tmp_path)
+    set_workspace(tmp_path)
+    main(["init"])
+    main(["run", "--set", "selection.quires=13", "--plugin", "transliteration", "--no-progress", "--quiet"])
+    manifest = json.loads((tmp_path / "output" / "run-001" / "manifest.json").read_text(encoding="utf-8"))
+    assert "--set selection.quires=13" in manifest["reproduce"], manifest["reproduce"]
+
+
+def test_following_the_reproduce_command_gives_the_same_text(tmp_path, monkeypatch):
+    import json
+
+    from tvtt.cli import main
+    from tvtt.paths import set_workspace
+
+    monkeypatch.chdir(tmp_path)
+    set_workspace(tmp_path)
+    main(["init"])
+    main(
+        [
+            "run",
+            "--section",
+            "zodiac",
+            "--text-class",
+            "labels",
+            "--plugin",
+            "transliteration",
+            "--no-progress",
+            "--quiet",
+        ]
+    )
+    manifest = json.loads((tmp_path / "output" / "run-001" / "manifest.json").read_text(encoding="utf-8"))
+    argv = manifest["reproduce"].split()[1:]  # drop the leading "tvtt"
+    main(argv + ["--plugin", "transliteration", "--no-progress", "--quiet"])
+    first = (tmp_path / "output" / "run-001" / "output.txt").read_bytes()
+    second = (tmp_path / "output" / "run-002" / "output.txt").read_bytes()
+    assert first == second, "the reproduce command did not reproduce the run"
+
+
+def test_a_solver_result_can_be_used_as_a_mapping(tmp_path, monkeypatch):
+    """solver.json holds the mapping; passing it to --mapping used to fail."""
+    import json
+
+    from tvtt.cli import main
+    from tvtt.mapping import Mapping
+    from tvtt.paths import set_workspace
+
+    monkeypatch.chdir(tmp_path)
+    set_workspace(tmp_path)
+    main(["init"])
+    main(["solve", "--iterations", "200", "--set", "selection.sections=zodiac", "--no-progress", "--quiet"])
+    result = tmp_path / "output" / "run-001" / "solver.json"
+    assert result.exists()
+    mapping = Mapping.load(result)
+    assert len(mapping.rules) > 20
+    assert "search" in mapping.meta.get("notes", "")
+    # The same mapping the solver reported, not something reconstructed.
+    best = json.loads(result.read_text(encoding="utf-8"))["best_mapping"]
+    assert set(mapping.rules) == set(best)
+
+
+def test_build_folios_regenerates_the_bundled_table(tmp_path, monkeypatch):
+    """An error hint told people to run this command, which did not exist."""
+    import json
+
+    from tvtt.cli import main
+    from tvtt.paths import PACKAGE_DATA, set_workspace
+
+    monkeypatch.chdir(tmp_path)
+    set_workspace(tmp_path)
+    assert main(["build-folios"]) == 0
+    built = json.loads((tmp_path / "data" / "folios.json").read_text(encoding="utf-8"))
+    bundled = json.loads((PACKAGE_DATA / "folios.json").read_text(encoding="utf-8"))
+    assert built["folios"] == bundled["folios"], "the bundled table is not reproducible"

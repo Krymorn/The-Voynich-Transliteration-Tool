@@ -24,6 +24,47 @@ from .util import stable_hash, write_json
 MANIFEST_FILENAME = "manifest.json"
 
 
+#: Selection settings that have a command line flag of their own. Anything not
+#: listed here is reproduced with "--set", which reaches every setting.
+_LIST_FLAGS = (("sections", "--section"), ("folios", "--folio"), ("scribes", "--scribe"))
+_VALUE_FLAGS = (
+    ("currier", "--currier", "any"),
+    ("textClass", "--text-class", "all"),
+    ("lines", "--lines", "all"),
+    ("words", "--words", "all"),
+)
+_NO_FLAG_DEFAULTS = {
+    "excludeFolios": [],
+    "currierHands": [],
+    "quires": [],
+    "locusTypes": [],
+    "locusKinds": [],
+    "startLine": 1,
+    "endLine": -1,
+    "minWords": 0,
+    "dropAmbiguousLines": False,
+    "dropUnreadableLines": False,
+}
+
+
+def _selection_flags(selection: dict) -> list:
+    """Turn a selection back into the arguments that would recreate it."""
+    out = []
+    for key, flag in _LIST_FLAGS:
+        for value in selection.get(key) or ():
+            out.append("%s %s" % (flag, value))
+    for key, flag, default in _VALUE_FLAGS:
+        value = selection.get(key, default)
+        if value and value != default:
+            out.append("%s %s" % (flag, value))
+    for key, default in _NO_FLAG_DEFAULTS.items():
+        value = selection.get(key, default)
+        if value != default:
+            rendered = ",".join(str(v) for v in value) if isinstance(value, list) else value
+            out.append("--set selection.%s=%s" % (key, rendered))
+    return out
+
+
 def _tidy_path(value) -> str:
     """Record a path relative to the workspace, never an absolute one."""
     from .paths import display_path
@@ -93,11 +134,20 @@ class RunManifest:
         }
 
     def command_hint(self) -> str:
-        return "tvtt run --transcription %s --mapping %s --seed %d" % (
-            self.transcription or "zl",
-            _tidy_path(self.mapping_file) or "<mapping>",
-            self.seed,
-        )
+        """A command line that actually reproduces this run.
+
+        It has to carry the selection. Without it, a run over one section
+        replays as a run over the whole manuscript, and a field called
+        "reproduce" that does not reproduce is worse than no field at all.
+        """
+        parts = [
+            "tvtt run",
+            "--transcription %s" % (self.transcription or "zl"),
+            "--mapping %s" % (_tidy_path(self.mapping_file) or "<mapping>"),
+        ]
+        parts.extend(_selection_flags(self.config.get("selection") or {}))
+        parts.append("--seed %d" % self.seed)
+        return " ".join(parts)
 
     def write(self, directory) -> Path:
         return write_json(Path(directory) / MANIFEST_FILENAME, self.to_dict())

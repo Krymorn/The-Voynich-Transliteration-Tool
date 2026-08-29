@@ -23,7 +23,7 @@ from .config import deep_merge, load_config, write_default_config
 from .corpus import TRANSCRIPTIONS, load_corpus, resolve_transcription
 from .errors import TvttError
 from .logging_util import configure, get_logger
-from .paths import display_path, set_workspace, ws
+from .paths import display_path, set_workspace, transcription_file, ws
 from .plugins import PluginRegistry, build_registry, write_plugins_document
 from .util import table
 
@@ -286,6 +286,11 @@ def _add_info(sub) -> None:
     p.add_argument("--currier", choices=["A", "B"])
     p.add_argument("--scribe")
     p.set_defaults(func=cmd_folios)
+
+    p = sub.add_parser("build-folios", help="regenerate the folio metadata from a transcription")
+    p.add_argument("--transcription", default="zl", help="which transliteration to read it from")
+    p.add_argument("--out", default="", help="where to write it (default: data/folios.json here)")
+    p.set_defaults(func=cmd_build_folios)
 
     p = sub.add_parser("dictionaries", help="list the reference dictionaries and control texts")
     p.set_defaults(func=cmd_dictionaries)
@@ -613,8 +618,21 @@ def cmd_solve(args) -> int:
     )
     print("your current mapping scored %.5f" % payload.get("current_score", 0))
     print()
-    print("Read output/solver.txt before believing this, and run:")
-    print("  tvtt run --plugin random_controls --plugin holdout --plugin corpus_match")
+    # Name the files that were actually written, and check the mapping that
+    # was actually found: without --mapping these plugins would score whatever
+    # config.json still points at, which is not what the solver just produced.
+    run_dir = display_path(outcome.output_dir)
+    checks = "tvtt run --plugin random_controls --plugin holdout --plugin corpus_match"
+    if args.save_as:
+        print("saved as mappings/%s.json" % args.save_as)
+        target = "--mapping mappings/%s.json" % args.save_as
+    else:
+        target = "--mapping %s/solver.json" % run_dir
+    print("Read %s/solver.txt before believing this, and run:" % run_dir)
+    print("  %s %s" % (checks, target))
+    if not args.save_as:
+        print()
+        print("Pass --save-as <name> next time to keep it as a mapping you can edit.")
     return 0
 
 
@@ -1086,6 +1104,29 @@ def cmd_folios(args) -> int:
     print(table(rows, ["folio", "section", "Currier language", "scribe", "Currier hand", "quire"]))
     print()
     print("%d folio(s)." % len(rows))
+    return 0
+
+
+def cmd_build_folios(args) -> int:
+    """Rebuild data/folios.json from a transcription's page variables.
+
+    The bundled file is generated, not hand-written, and an error elsewhere
+    tells you to run this when it is missing. It writes into the workspace,
+    which takes precedence over the bundled copy, so the installed package is
+    never touched.
+    """
+    from .corpus import resolve_transcription
+    from .folios import build_folio_table
+    from .ivtff import parse_file
+    from .util import write_json
+
+    spec = resolve_transcription(args.transcription)
+    document = parse_file(transcription_file(spec.filename))
+    payload = build_folio_table(document.pages.values())
+    target = Path(args.out) if args.out else ws("data", "folios.json")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    write_json(target, payload)
+    print("wrote %s: %d folios from %s" % (display_path(target), len(payload["folios"]), spec.filename))
     return 0
 
 

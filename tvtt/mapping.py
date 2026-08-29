@@ -144,6 +144,16 @@ class Mapping:
         which matters for glyphs whose own character happens to be a marker,
         such as the apostrophe in EVA.
         """
+        # A solver result is not a mapping file, but it contains one, and the
+        # solver tells you to run further checks on what it found. Reading the
+        # mapping straight out of it saves lifting it across by hand.
+        if isinstance(data, dict) and "best_mapping" in data and "rules" not in data:
+            found = data.get("best_mapping")
+            if not isinstance(found, dict):
+                raise MappingError("this looks like a solver result, but best_mapping is not a mapping")
+            note = "Best mapping from a %s search." % (data.get("method") or "solver")
+            data = {"meta": {"notes": note, "score": data.get("best_score")}, "rules": found}
+
         structured = isinstance(data, dict) and "rules" in data
         meta = dict(data.get("meta", {})) if isinstance(data, dict) else {}
         raw_rules = data.get("rules") if structured else data
