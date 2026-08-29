@@ -1,0 +1,35 @@
+# Workspace files. These belong to whoever runs the tool, not to the tool
+# itself: "tvtt init" creates them. The leading slash anchors each pattern to
+# the repository root, so bundled data such as tvtt/data/transcriptions is not
+# caught by it.
+/config.json
+/plugins.json
+/advanced_config.json
+/advanced_plugins.json
+/mappings/
+/output/
+/reference_texts/
+/transcriptions/
+/results.json
+/.tvtt_cache/
+
+# Scratch space
+/.work/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+/build/
+/dist/
+/.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

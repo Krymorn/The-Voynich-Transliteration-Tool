@@ -1,0 +1,22 @@
+# The Voynich Transliteration Tool needs nothing to run.
+#
+# The core tool - parsing, mapping, every statistic, the baselines, the solver,
+# the HTML reports and the local web app - is written against the Python
+# standard library alone. Install it with:
+#
+#     pip install -e .
+#
+# The packages below unlock optional extras. Each is detected at run time, and
+# any feature that needs a missing one says so and tells you what to install,
+# rather than failing.
+#
+#     pip install -r requirements.txt        everything below
+#     pip install -e ".[plots]"              just one extra
+#     pip install -e ".[all]"                all of them
+#     pip install -e ".[dev]"                plus the test and lint tools
+
+matplotlib>=3.5        # the 'plots' plugin: Zipf, Heaps, word length, heatmaps
+plotly>=5.0            # interactive Zipf plots
+deep-translator>=1.11  # the 'translate' plugin (the only feature that uses the network)
+tqdm>=4.60             # nicer progress bars on long runs
+jsonschema>=4.0        # stricter, more detailed config validation messages

@@ -1,0 +1,58 @@
+cff-version: 1.2.0
+title: The Voynich Transliteration Tool (TVTT)
+message: "If you use this software in your research, please cite it as below."
+type: software
+authors:
+  - family-names: Krymorn
+    alias: cmarbel
+repository-code: https://github.com/Krymorn/The-Voynich-Transliteration-Tool
+url: https://github.com/Krymorn/The-Voynich-Transliteration-Tool
+version: 2.0.0
+date-released: 2026-08-28
+license: MIT
+keywords:
+  - Voynich Manuscript
+  - cryptanalysis
+  - transliteration
+  - IVTFF
+  - digital humanities
+  - historical linguistics
+abstract: >
+  The Voynich Transliteration Tool (TVTT) is a workbench for building, testing
+  and stress-testing substitution mappings for the Voynich Manuscript. It parses
+  the published IVTFF transliterations in full, preserving folio, paragraph and
+  locus information, so that analyses can be restricted to named manuscript
+  sections, Currier languages, individual scribes, labels or first lines.
+
+  Beyond applying a mapping, TVTT measures the result: conditional entropy,
+  word-length distribution, vocabulary growth, Zipf and Heaps behaviour,
+  positional and slot-grammar structure, affixes, repetition and line-position
+  effects. Its distinguishing feature is a suite of baselines intended to
+  prevent false positives, including random-mapping control distributions,
+  shuffled-text baselines, a synthetic self-citation generator used as a null
+  hypothesis, real-language controls, held-out validation and an overfitting
+  warning. It also provides dictionary matching with significance testing, and
+  hill-climbing, simulated-annealing and genetic solvers.
+
+  Every run writes a manifest recording the tool version, configuration hash,
+  input checksums and random seed, so that results are reproducible and citable.
+references:
+  - type: data
+    title: "IVTFF transliteration files of the Voynich Manuscript"
+    authors:
+      - family-names: Zandbergen
+        given-names: René
+      - family-names: Landini
+        given-names: Gabriel
+    url: https://www.voynich.nu/data/
+    notes: >
+      The nine transliterations bundled with TVTT, and the IVTFF format
+      specification they use.
+  - type: generic
+    title: "Beinecke MS 408 (the Voynich Manuscript)"
+    institution:
+      name: Beinecke Rare Book and Manuscript Library, Yale University
+    url: https://collections.library.yale.edu/catalog/2002046
+    notes: >
+      Page images are published openly over IIIF and are linked, not
+      redistributed, by this software.

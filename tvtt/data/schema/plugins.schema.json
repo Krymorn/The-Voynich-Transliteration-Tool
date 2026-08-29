@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TVTT plugin switches",
+  "description": "Which optional features run, and how each of them is configured. Run 'tvtt plugins list' for descriptions.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "plugins": {
+      "type": "object",
+      "description": "One entry per plugin, keyed by plugin name.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "description": "Set to true to run this feature.",
+            "type": "boolean"
+          },
+          "settings": {
+            "description": "Feature-specific options. See 'tvtt plugins info <name>'.",
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

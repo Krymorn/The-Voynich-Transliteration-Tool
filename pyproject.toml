@@ -1,0 +1,95 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tvtt"
+version = "2.0.0"
+description = "The Voynich Transliteration Tool: build, test and stress-test substitution mappings for the Voynich Manuscript."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "Krymorn (cmarbel on voynich.ninja)" }]
+keywords = ["voynich", "cryptanalysis", "transliteration", "manuscript", "ivtff", "digital humanities"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Text Processing :: Linguistic",
+]
+
+# The core tool has no required third-party dependencies at all: it runs on a
+# clean Python install. Everything below is optional and degrades gracefully.
+dependencies = []
+
+[project.optional-dependencies]
+plots = ["matplotlib>=3.5"]
+interactive = ["plotly>=5.0"]
+translate = ["deep-translator>=1.11"]
+progress = ["tqdm>=4.60"]
+schema = ["jsonschema>=4.0"]
+all = ["matplotlib>=3.5", "plotly>=5.0", "deep-translator>=1.11", "tqdm>=4.60", "jsonschema>=4.0"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "ruff>=0.5"]
+
+[project.urls]
+Homepage = "https://github.com/Krymorn/The-Voynich-Transliteration-Tool"
+Issues = "https://github.com/Krymorn/The-Voynich-Transliteration-Tool/issues"
+
+[project.scripts]
+tvtt = "tvtt.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["tvtt", "tvtt.*"]
+
+[tool.setuptools.package-data]
+tvtt = [
+  "data/*.json",
+  "data/schema/*.json",
+  "data/transcriptions/*.txt",
+  "data/dictionaries/*.txt",
+  "data/controls/*.txt",
+  "data/fonts/*.ttf",
+  # The SIL Open Font Licence requires the licence to travel with the fonts.
+  "data/fonts/OFL.txt",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["error::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+ignore = [
+  "E501",    # long lines are allowed in the explanatory help text
+  "B008",    # argparse and dataclass patterns use calls in defaults
+  "SIM105",  # contextlib.suppress is not clearer here
+  "UP031",   # printf-style formatting is used throughout, deliberately: it
+             # keeps the long help strings readable and stays valid on 3.9
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402", "B011"]
+"tvtt/plugins/*" = ["E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["tvtt"]
+
+[tool.coverage.run]
+source = ["tvtt"]
+omit = ["tvtt/webapp/*", "tools/*"]

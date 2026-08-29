@@ -1,0 +1,97 @@
+{
+  "note": "Published transliterations of the Voynich Manuscript, all from Rene Zandbergen's voynich.nu. The checksums are of the copies bundled with this release; 'tvtt fetch' verifies a download against them and warns, rather than fails, when the upstream file has been revised.",
+  "base": "https://www.voynich.nu/data/",
+  "licence": "The transliteration files are made freely available by their authors for research use.",
+  "sources": {
+    "zl": {
+      "title": "Zandbergen-Landini (ZL)",
+      "file": "ZL3b-n.txt",
+      "url": "https://www.voynich.nu/data/ZL3b-n.txt",
+      "alphabet": "Eva-",
+      "transcriber": "Rene Zandbergen and Gabriel Landini",
+      "sha256": "bf5b6d4ac1e3a51b1847a9c388318d609020441ccd56984c901c32b09beccafc",
+      "bytes": 411671,
+      "description": "The most complete EVA transliteration: all 5374 loci, extended EVA glyphs, regularly corrected. The recommended default."
+    },
+    "v101": {
+      "title": "v101 (Glen Claston), IVTFF form",
+      "file": "GC2a-n.txt",
+      "url": "https://www.voynich.nu/data/GC2a-n.txt",
+      "alphabet": "v101",
+      "transcriber": "Glen Claston",
+      "sha256": "b09570cb6c993bc2d87134d115e60a978650a8a6495483ddbb1f6005a586096f",
+      "bytes": 314916,
+      "description": "The v101 alphabet, which distinguishes far more glyph shapes than EVA. This is the IVTFF conversion, so it carries locus and page metadata."
+    },
+    "v101_native": {
+      "title": "v101 (original layout)",
+      "file": "voyn_101.txt",
+      "url": "https://www.voynich.nu/data/voyn_101.txt",
+      "alphabet": "v101",
+      "transcriber": "Glen Claston",
+      "sha256": "f278a451d873c520f7ab509c4af12152698a1d3efd2353924e177a565c17ba7e",
+      "bytes": 248567,
+      "description": "The original, unmodified v101 file with high-ASCII bytes and its own locus ordering. Kept for compatibility with older work."
+    },
+    "takahashi": {
+      "title": "Takahashi (H), interlinear form",
+      "file": "IT2a-n.txt",
+      "url": "https://www.voynich.nu/data/IT2a-n.txt",
+      "alphabet": "EvaT",
+      "transcriber": "Takeshi Takahashi",
+      "sha256": "7f27a8b0feed8f6de0a99900df6bf912dd1d295c38e5f830bac8b41c3f536fb5",
+      "bytes": 342104,
+      "description": "Takeshi Takahashi's transliteration as it appears in Jorge Stolfi's 1999 interlinear file. Basic lowercase EVA."
+    },
+    "voynichese": {
+      "title": "Takahashi (voynichese.com edition)",
+      "file": "VT0e-n.txt",
+      "url": "https://www.voynich.nu/data/VT0e-n.txt",
+      "alphabet": "EvaT",
+      "transcriber": "Takeshi Takahashi",
+      "sha256": "e13ba5e073cae54722bc095db8eb9a1aa9c7105f45a70f66a0aad236077f2426",
+      "bytes": 335205,
+      "description": "The Takahashi text as served by voynichese.com. Differs from the interlinear edition only in how unreadable characters are marked."
+    },
+    "currier": {
+      "title": "Currier / D'Imperio (C)",
+      "file": "CD2a-n.txt",
+      "url": "https://www.voynich.nu/data/CD2a-n.txt",
+      "alphabet": "Curr",
+      "transcriber": "Prescott Currier and Mary D'Imperio",
+      "sha256": "edc18e6de699c50d575925d4f469685ccbbe22c9755b9b8a3b002f83253cbde5",
+      "bytes": 132833,
+      "description": "The original Currier transliteration in the Currier alphabet. Covers about half the manuscript, and is the source of the Currier A/B distinction."
+    },
+    "fsg": {
+      "title": "FSG (Friedman First Study Group)",
+      "file": "FG2a-n.txt",
+      "url": "https://www.voynich.nu/data/FG2a-n.txt",
+      "alphabet": "FSG-",
+      "transcriber": "Friedman First Study Group",
+      "sha256": "a1460a05ff610a406e62b4095a8f8e88c04653c1ef4aa5ad6428ddb1ac01fe06",
+      "bytes": 264787,
+      "description": "The oldest machine-readable transliteration, in the FSG alphabet, from William Friedman's study group."
+    },
+    "reference": {
+      "title": "Reference transliteration (RF, extended)",
+      "file": "RF1b-e.txt",
+      "url": "https://www.voynich.nu/data/RF1b-e.txt",
+      "alphabet": "Eva-",
+      "transcriber": "Rene Zandbergen",
+      "sha256": "e7d3238e35743e06c63367a933909ec37b1e2de7ada3a1b449447eafa1918782",
+      "bytes": 362373,
+      "description": "An automatic merge of the GC and ZL transliterations, expressed in extended EVA. Useful as a tie-breaker when two transcribers disagree."
+    },
+    "reference_basic": {
+      "title": "Reference transliteration (RF, basic)",
+      "file": "RF1b-er.txt",
+      "url": "https://www.voynich.nu/data/RF1b-er.txt",
+      "alphabet": "Eva-",
+      "transcriber": "Rene Zandbergen",
+      "sha256": "eb857a1f353b18983fbc25b954e1bbce227a26d99cefabfda9206ff9b57644d2",
+      "bytes": 343891,
+      "description": "The same reference transliteration reduced to basic EVA, with no extended glyphs."
+    }
+  }
+}

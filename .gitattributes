@@ -1,0 +1,19 @@
+# Line endings, and why the bundled data is exempt from them.
+#
+# Source and documentation are normalised to LF inside the repository and
+# checked out in whatever style the platform prefers. That is the usual
+# arrangement and it is fine for code.
+#
+# The files under tvtt/data are a different matter. Every transcription has a
+# SHA-256 recorded in sources.json, and "tvtt verify" compares the bytes on
+# disk against it. If Git rewrote their line endings on checkout, eight of the
+# nine would hash differently on Windows and verify would report the bundled
+# data as corrupt -- on a clean clone, with nothing actually wrong. The same
+# bytes also have to reach every platform for a run to be reproducible.
+#
+# So: no conversion, ever, for anything shipped as data.
+
+* text=auto
+
+tvtt/data/** -text
+*.ttf binary

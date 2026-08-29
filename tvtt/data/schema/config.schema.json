@@ -1,0 +1,376 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TVTT configuration",
+  "description": "Settings that describe what to run. Which optional features run is decided separately, in plugins.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "transcription": {
+      "description": "Which published transliteration to read. Run 'tvtt sources' to list them.",
+      "type": "string",
+      "enum": [
+        "zl",
+        "v101",
+        "v101_native",
+        "takahashi",
+        "voynichese",
+        "currier",
+        "fsg",
+        "reference",
+        "reference_basic",
+        "eva"
+      ]
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "description": "Path to the mapping file, relative to this config file.",
+          "type": "string"
+        },
+        "precedence": {
+          "description": "Which kind of rule wins when several could apply.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "initial",
+              "final",
+              "occurrence",
+              "plain"
+            ]
+          }
+        },
+        "unmapped": {
+          "description": "What to do with a glyph the mapping says nothing about.",
+          "type": "string",
+          "enum": [
+            "keep",
+            "drop",
+            "placeholder"
+          ]
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "markers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "startOfWord": {
+              "type": "string"
+            },
+            "endOfWord": {
+              "type": "string"
+            },
+            "occurrence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "ambiguity": {
+      "description": "How to resolve the uncertainties recorded in the transcription.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "alternates": {
+          "description": "What to do with alternate readings such as [a:o].",
+          "type": "string",
+          "enum": [
+            "first",
+            "last",
+            "variants",
+            "drop_line"
+          ]
+        },
+        "maxVariants": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512
+        },
+        "unreadable": {
+          "description": "What to do with the ? that marks an unreadable glyph.",
+          "type": "string",
+          "enum": [
+            "keep",
+            "drop_word",
+            "drop_line",
+            "placeholder"
+          ]
+        },
+        "unreadableChar": {
+          "type": "string"
+        },
+        "uncertainSpace": {
+          "description": "What to do with the , that marks an uncertain word break.",
+          "type": "string",
+          "enum": [
+            "keep",
+            "space",
+            "join"
+          ]
+        },
+        "ligatures": {
+          "description": "Whether {ck} keeps its contents or is dropped entirely.",
+          "type": "string",
+          "enum": [
+            "keep",
+            "drop"
+          ]
+        },
+        "highAscii": {
+          "description": "How to represent glyphs written as @253; codes.",
+          "type": "string",
+          "enum": [
+            "unicode",
+            "keep",
+            "drop"
+          ]
+        },
+        "stripFillers": {
+          "type": "boolean"
+        }
+      }
+    },
+    "selection": {
+      "description": "Which part of the manuscript to work on. Empty lists mean 'do not filter'.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "folios": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludeFolios": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "currier": {
+          "type": "string",
+          "enum": [
+            "any",
+            "A",
+            "B"
+          ]
+        },
+        "scribes": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "integer"
+            ]
+          }
+        },
+        "currierHands": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "integer"
+            ]
+          }
+        },
+        "quires": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locusTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locusKinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "textClass": {
+          "type": "string",
+          "enum": [
+            "all",
+            "running",
+            "labels",
+            "circular",
+            "radial"
+          ]
+        },
+        "lines": {
+          "type": "string",
+          "enum": [
+            "all",
+            "first",
+            "last",
+            "not_first",
+            "single"
+          ]
+        },
+        "words": {
+          "type": "string",
+          "enum": [
+            "all",
+            "first",
+            "not_first",
+            "last"
+          ]
+        },
+        "startLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": -1
+        },
+        "minWords": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dropAmbiguousLines": {
+          "type": "boolean"
+        },
+        "dropUnreadableLines": {
+          "type": "boolean"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "directory": {
+          "type": "string"
+        },
+        "wordSeparator": {
+          "type": "string"
+        },
+        "uncertainWordSeparator": {
+          "type": "string"
+        },
+        "writeTransliteration": {
+          "type": "boolean"
+        },
+        "writeManifest": {
+          "type": "boolean"
+        },
+        "recordResult": {
+          "type": "boolean",
+          "description": "Append this run to the workspace results.json, the shared results format."
+        },
+        "encoding": {
+          "type": "string"
+        },
+        "separateRunFolders": {
+          "description": "Give each run its own timestamped sub-folder so results are never overwritten.",
+          "type": "boolean"
+        },
+        "runName": {
+          "description": "Name this run's folder yourself instead of using a timestamp.",
+          "type": "string"
+        },
+        "keepRuns": {
+          "description": "Delete the oldest run folders beyond this many. 0 keeps every run.",
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cache": {
+          "type": "boolean"
+        },
+        "workers": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
+        },
+        "progress": {
+          "type": "boolean"
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "text",
+            "json"
+          ]
+        }
+      }
+    },
+    "random": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "seed": {
+          "type": "integer"
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "offline": {
+          "type": "boolean"
+        },
+        "userAgent": {
+          "type": "string"
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 600
+        }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "language": {
+          "type": "string"
+        },
+        "folder": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
