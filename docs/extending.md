@@ -158,7 +158,7 @@ tvtt/
   webapp/           the browser editor
   plugins/          36 features, one file each
   data/             transcriptions, dictionaries, controls, schemas, fonts
-tests/              225 tests
+tests/              244 tests
 tools/              the script that built the bundled reference data
 ```
 

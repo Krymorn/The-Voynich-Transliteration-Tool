@@ -98,6 +98,18 @@ tvtt solve --injective              # force every glyph to a different letter
 tvtt solve --save-as my_result      # keep the winner as a mapping
 ```
 
+Whether or not you pass `--save-as`, the run folder gets a `solver.json` holding
+the mapping it found. That file can be used as a mapping directly, so a result
+you did not save is not lost:
+
+```bash
+tvtt run --mapping output/run-001/solver.json --plugin corpus_match
+```
+
+`--save-as` is still worth passing when you mean to keep working on the result:
+it writes a proper mapping into `mappings/`, versioned from then on, that you
+can open and edit.
+
 `--swap-only` starts from your current mapping and only exchanges letters between glyphs,
 which preserves the letter frequencies you already chose. `--injective` forbids two glyphs
 sharing a letter, which stops the solver from buying dictionary hits by merging glyphs

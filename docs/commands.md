@@ -32,6 +32,7 @@ tvtt folios          every page with its section, language, scribe and quire
 tvtt dictionaries    the reference dictionaries and control texts
 tvtt fetch           download transcriptions from voynich.nu and verify them
 tvtt verify          check the checksums of the files you have
+tvtt build-folios    regenerate the folio metadata from a transcription
 tvtt doctor          check your folder and report anything wrong
 tvtt web             open the mapping editor in your browser
 tvtt cache           inspect or clear the cache
@@ -161,6 +162,19 @@ tvtt results         # every recorded run, ranked; --metric picks the column
 tvtt cache           # what is cached and how big it is
 tvtt cache clear     # delete it; always safe
 ```
+
+`tvtt build-folios` rebuilds `data/folios.json` from a transcription's page
+variables. The bundled table is generated rather than hand-written, and this is
+what generates it. You will not normally need it — it exists for the case where
+the file is missing or you want to check the bundled one is reproducible:
+
+```bash
+tvtt build-folios                        # from ZL, into data/folios.json here
+tvtt build-folios --transcription v101
+```
+
+It writes into your working folder, which takes precedence over the bundled
+copy, so the installed package is never touched.
 
 `tvtt doctor` is the first thing to run when anything behaves unexpectedly. It checks the
 things that are easy to get wrong and hard to notice: a mapping pointing at a file that does
