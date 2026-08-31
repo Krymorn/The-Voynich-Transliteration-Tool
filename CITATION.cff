@@ -8,7 +8,7 @@ authors:
 repository-code: https://github.com/Krymorn/The-Voynich-Transliteration-Tool
 url: https://github.com/Krymorn/The-Voynich-Transliteration-Tool
 version: 2.0.0
-date-released: 2026-08-28
+date-released: 2026-08-31
 license: MIT
 keywords:
   - Voynich Manuscript
@@ -32,7 +32,8 @@ abstract: >
   shuffled-text baselines, a synthetic self-citation generator used as a null
   hypothesis, real-language controls, held-out validation and an overfitting
   warning. It also provides dictionary matching with significance testing, and
-  hill-climbing, simulated-annealing and genetic solvers.
+  hill-climbing, simulated-annealing and genetic solvers, which can search
+  positional rules as well as a plain letter for each glyph.
 
   Every run writes a manifest recording the tool version, configuration hash,
   input checksums and random seed, so that results are reproducible and citable.
