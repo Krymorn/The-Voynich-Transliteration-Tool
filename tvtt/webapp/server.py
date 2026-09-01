@@ -365,12 +365,12 @@ function setRule(glyph, slot, value) {
   if (Object.keys(RULES[glyph]).length === 0) delete RULES[glyph];
 }
 
-function schedule() { clearTimeout(timer); timer = setTimeout(preview, 220); }
+function schedule() { clearTimeout(timer); timer = setTimeout(preview, 1000); }
 
 async function preview() {
   setStatus('updating preview...');
   const res = await (await fetch('/api/preview', {method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({rules: RULES, limit: 80})})).json();
+    body: JSON.stringify({rules: RULES, limit: 10000})})).json();
   const host = document.getElementById('preview');
   host.innerHTML = '';
   for (const line of res.lines) {
